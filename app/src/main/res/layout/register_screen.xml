@@ -8,8 +8,7 @@
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:layout_marginVertical="20dp"
-        android:layout_marginHorizontal="20dp"
-        android:src="">
+        android:layout_marginHorizontal="20dp">
     </ImageView>
 
     <LinearLayout
@@ -36,26 +35,22 @@
         <ImageView
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:layout_weight="0.5"
-            android:src="">
+            android:layout_weight="0.5">
         </ImageView>
         <ImageView
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:layout_weight="0.5"
-            android:src="">
+            android:layout_weight="0.5">
         </ImageView>
         <ImageView
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:layout_weight="0.5"
-            android:src="">
+            android:layout_weight="0.5">
         </ImageView>
         <ImageView
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:layout_weight="0.5"
-            android:src="">
+            android:layout_weight="0.5">
         </ImageView>
     </LinearLayout>
 
@@ -70,8 +65,7 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:padding="10dp"
-            android:text="Email"
-            android:background="">
+            android:text="Email">
         </EditText>
     </LinearLayout>
 
@@ -86,8 +80,7 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:padding="10dp"
-            android:text="Password"
-            android:background="">
+            android:text="Password">
         </EditText>
     </LinearLayout>
 
