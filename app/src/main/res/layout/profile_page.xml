@@ -28,12 +28,18 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
 
+                <View
+                    android:id="@+id/line6"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@drawable/line"
+                    app:layout_constraintTop_toBottomOf="@+id/constraintLayout2"/>
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/constraintLayout2"
                     android:layout_width="match_parent"
                     android:layout_height="170dp"
-                    android:background="@color/black"
+                    android:background="@color/white"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent">
@@ -75,6 +81,7 @@
                     app:layout_constraintVertical_bias="0.3" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
+
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/bioconstraint"
@@ -163,8 +170,15 @@
                 android:background="@drawable/bggray"
                 app:layout_constraintTop_toBottomOf="@+id/bioconstraint" />
 
+            <View
+                android:id="@+id/line7"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@drawable/line"
+                app:layout_constraintTop_toBottomOf="@+id/bioconstraint"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
+
     </ScrollView>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -173,6 +187,13 @@
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         android:paddingTop="30dp">
+
+        <View
+            android:id="@+id/line8"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@drawable/line"
+            app:layout_constraintBottom_toTopOf="@+id/linearLayout"/>
 
         <LinearLayout
             android:id="@+id/linearLayout"
