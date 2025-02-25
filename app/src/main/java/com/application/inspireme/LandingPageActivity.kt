@@ -24,6 +24,7 @@ class LandingPageActivity : Activity() {
         val settingsButton = findViewById<ImageButton>(R.id.button_settings)
         settingsButton.setOnClickListener {
             val intent = Intent(this, SettingsPageActivity::class.java)
+            intent.putExtra("previous_screen", "LandingPageActivity")
             startActivity(intent)
         }
     }

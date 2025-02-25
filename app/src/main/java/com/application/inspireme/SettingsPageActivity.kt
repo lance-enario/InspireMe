@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 
 class SettingsPageActivity : Activity() {
+    private var previousScreen: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.settings_screen)
@@ -24,10 +25,15 @@ class SettingsPageActivity : Activity() {
             startActivity(aboutintent)
         }
 
+        previousScreen = intent.getStringExtra("previous_screen")
         val backButton = findViewById<ImageView>(R.id.back_icon_left)
         backButton.setOnClickListener {
-            val backintent = Intent(this, LandingPageActivity::class.java)
-            startActivity(backintent)
+            val intent = when (previousScreen) {
+                "ProfilePageActivity" -> Intent(this, ProfilePageActivity::class.java)
+                "LandingPageActivity" -> Intent(this, LandingPageActivity::class.java)
+                else -> Intent(this, LandingPageActivity::class.java)
+            }
+            startActivity(intent)
         }
     }
     fun showLogoutDialog(view: View) {
