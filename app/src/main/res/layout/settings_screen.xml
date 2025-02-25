@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -20,11 +19,11 @@
                     android:background="@drawable/rectangle"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.985"
-                    tools:layout_editor_absoluteX="0dp" />
+                    app:layout_constraintVertical_bias="1" />
 
                 <ImageView
                     android:id="@+id/back_icon_left"
+                    android:clickable="true"
                     android:layout_width="30dp"
                     android:layout_height="30dp"
                     android:layout_marginVertical="10dp"
@@ -63,7 +62,8 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_marginTop="12dp"
+            android:id="@+id/settings_account"
+            android:clickable="true"
             android:layout_width="match_parent"
             android:layout_height="60dp">
 
@@ -117,12 +117,11 @@
                     android:layout_marginHorizontal="28dp"
                     android:background="@drawable/rectangle"
                     app:layout_constraintBottom_toBottomOf="parent"
-             />
-
-
+                    app:layout_constraintVertical_bias="0.162"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/settings_notifications"
             android:clickable="true"
             android:layout_width="match_parent"
             android:layout_height="60dp">
@@ -178,8 +177,121 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/settings_privacy"
+            android:clickable="true"
             android:layout_width="match_parent"
             android:layout_height="60dp">
+
+                <ImageView
+                    android:id="@+id/privacy_icon"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginVertical="10dp"
+                    android:src="@drawable/privacy_icon"
+                    app:layout_constraintBottom_toTopOf="@+id/line_privacy"
+                    app:layout_constraintEnd_toStartOf="@+id/privacy_name"
+                    app:layout_constraintHorizontal_bias="0.679"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.585" />
+
+                <TextView
+                    android:id="@+id/privacy_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Privacy and Security"
+                    android:textColor="@color/black"
+                    android:textSize="18dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.315"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:id="@+id/arrow_privacy"
+                    android:layout_width="20dp"
+                    android:layout_height="30dp"
+                    android:layout_marginVertical="10dp"
+                    android:src="@drawable/arrow"
+                    app:layout_constraintBottom_toTopOf="@+id/line_privacy"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.928"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.56" />
+
+                <View
+                    android:id="@+id/line_privacy"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginHorizontal="28dp"
+                    android:background="@drawable/rectangle"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintVertical_bias="0.162" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/settings_language"
+            android:clickable="true"
+            android:layout_width="match_parent"
+            android:layout_height="60dp">
+
+                <ImageView
+                    android:id="@+id/language_icon"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginVertical="10dp"
+                    android:src="@drawable/language_icon"
+                    app:layout_constraintBottom_toTopOf="@+id/line_language"
+                    app:layout_constraintEnd_toStartOf="@+id/language_name"
+                    app:layout_constraintHorizontal_bias="0.679"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.585" />
+
+                <TextView
+                    android:id="@+id/language_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Language"
+                    android:textColor="@color/black"
+                    android:textSize="18dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.255"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:id="@+id/arrow_language"
+                    android:layout_width="20dp"
+                    android:layout_height="30dp"
+                    android:layout_marginVertical="10dp"
+                    android:src="@drawable/arrow"
+                    app:layout_constraintBottom_toTopOf="@+id/line_language"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.928"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.56" />
+
+                <View
+                    android:id="@+id/line_language"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginHorizontal="28dp"
+                    android:background="@drawable/rectangle"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintVertical_bias="0.162" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:id="@+id/about_constraint"
+            android:clickable="true">
 
                 <ImageView
                     android:id="@+id/about_icon"
@@ -197,12 +309,12 @@
                     android:id="@+id/about_category"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="About the Developers"
+                    android:text="About"
                     android:textColor="@color/black"
                     android:textSize="18dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.35"
+                    app:layout_constraintHorizontal_bias="0.234"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -214,7 +326,7 @@
                     android:src="@drawable/arrow"
                     app:layout_constraintBottom_toTopOf="@+id/horizontal_4"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.794"
+                    app:layout_constraintHorizontal_bias="0.891"
                     app:layout_constraintStart_toEndOf="@+id/about_category"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintVertical_bias="0.482" />
@@ -226,17 +338,13 @@
                     android:layout_marginHorizontal="28dp"
                     android:background="@drawable/rectangle"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.464"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="parent"
-                    app:layout_constraintVertical_bias="0.105" />
-
-
+                    app:layout_constraintVertical_bias="0.162" />
         </androidx.constraintlayout.widget.ConstraintLayout>
+
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/logout_clickable"
             android:clickable="true"
+            android:onClick="showLogoutDialog"
             android:layout_width="match_parent"
             android:layout_height="60dp">
 
@@ -275,11 +383,9 @@
                     android:layout_marginHorizontal="28dp"
                     android:background="@drawable/rectangle"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="parent"
-                    app:layout_constraintVertical_bias="0.093" />
+                    app:layout_constraintVertical_bias="0.162" />
         </androidx.constraintlayout.widget.ConstraintLayout>
+
 
 
 

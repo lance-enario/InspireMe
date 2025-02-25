@@ -12,7 +12,8 @@
         android:clipToOutline="true"
         android:layout_width="70dp"
         android:layout_height="70dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="90dp"
+        android:layout_marginBottom="40dp"
         android:layout_gravity="center"/>
 
     <TextView
@@ -60,11 +61,13 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="12dp"
         android:orientation="vertical">
 
         <EditText
             android:id="@+id/Username"
-            android:layout_marginBottom="40dp"
+            android:layout_marginBottom="15dp"
+            android:paddingLeft="16dp"
             android:layout_width="match_parent"
             android:layout_height="45dp"
             android:layout_gravity="center_horizontal"
@@ -73,22 +76,33 @@
 
         <EditText
             android:id="@+id/Password"
-            android:layout_marginBottom="40dp"
+            android:paddingLeft="16dp"
             android:layout_width="match_parent"
             android:layout_height="45dp"
             android:layout_gravity="center_horizontal"
             android:background="@drawable/border"
             android:hint="Password"/>
 
+        <TextView
+            android:layout_marginTop="6dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:textColor="@color/black"
+            android:text="Forgot Password?"
+            android:clickable="true"/>
+
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="12dp"
         android:orientation="vertical">
 
-        <Button
+        <android.widget.Button
             android:id="@+id/LoginButton"
+            android:layout_marginTop="30dp"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center"
@@ -96,18 +110,6 @@
             android:textSize="18sp"
             android:textColor="@color/white"
             android:text="Log In"/>
-
-
-        <TextView
-            android:layout_marginBottom="30dp"
-            android:layout_width="300dp"
-            android:layout_height="55dp"
-            android:layout_gravity="center_horizontal"
-            android:textAlignment="center"
-            android:textColor="@color/black"
-            android:text="Forgot Password?"
-            android:clickable="true"/>
-
     </LinearLayout>
 
 
