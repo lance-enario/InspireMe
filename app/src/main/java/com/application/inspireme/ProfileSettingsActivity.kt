@@ -1,6 +1,5 @@
 package com.application.inspireme
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -26,7 +25,7 @@ class ProfileSettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.profile_settings)
+        setContentView(R.layout.activity_profile_settings)
 
         sharedPreferences = getSharedPreferences("UserProfile", Context.MODE_PRIVATE)
 

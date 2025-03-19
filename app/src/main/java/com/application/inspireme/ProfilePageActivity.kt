@@ -18,7 +18,7 @@ class ProfilePageActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.profile_page)
+        setContentView(R.layout.activity_profile_page)
 
         sharedPreferences = getSharedPreferences("UserProfile", Context.MODE_PRIVATE)
 

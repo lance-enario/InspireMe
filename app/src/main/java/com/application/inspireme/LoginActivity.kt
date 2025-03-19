@@ -10,10 +10,10 @@ import android.widget.Toast
 
 class LoginActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-//        val emaill = "test@gmail.com"
-//        val password = "123"
+        val email = "test@gmail.com"
+        val password = "123"
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.login)
+        setContentView(R.layout.activity_login)
 
         val buttonLogin = findViewById<Button>(R.id.LoginButton)
         buttonLogin.setOnClickListener {
@@ -25,12 +25,12 @@ class LoginActivity : Activity() {
                 return@setOnClickListener
             }
 
-//            if (usernameInput != emaill || passwordInput != password) {
-//                Toast.makeText(this, "Invalid Credentials. Please try again!", Toast.LENGTH_SHORT).show()
-//            } else {
+            if (usernameInput != email || passwordInput != password) {
+                Toast.makeText(this, "Invalid Credentials. Please try again!", Toast.LENGTH_SHORT).show()
+            } else {
                 val intent = Intent(this, LandingPageActivity::class.java)
                 startActivity(intent)
-//            }
+            }
         }
     }
 }
