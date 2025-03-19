@@ -15,17 +15,17 @@ class LandingPageActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.landing_page)
 
-        var intent;
-
-        val button = findViewById<ImageButton>(R.id.Profilebutton)
-        button.setOnClickListener {
-            intent = Intent(this, ProfilePageActivity::class.java)
+        val profileButton = findViewById<ImageButton>(R.id.Profilebutton)
+        profileButton.setOnClickListener {
+            val intent = Intent(this, ProfilePageActivity::class.java)
             startActivity(intent)
         }
 
-        val settings_button = findViewById(R.id.button_settings)
-        settings_button.setOnClickListener {
-            intent = Intent(this, SettingsPageActivity::class.java)
+        val settingsButton = findViewById<ImageButton>(R.id.button_settings)
+        settingsButton.setOnClickListener {
+            val intent = Intent(this, SettingsPageActivity::class.java)
+            intent.putExtra("previous_screen", "LandingPageActivity")
+            startActivity(intent)
         }
     }
 }

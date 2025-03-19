@@ -133,7 +133,7 @@
         android:background="#EB996D">
 
         <ImageView
-            android:id="@+id/back_icon_left"
+            android:id="@+id/back_icon_about"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_marginVertical="10dp"
