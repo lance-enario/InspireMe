@@ -1,7 +1,6 @@
 package com.application.inspireme
 
 import android.app.Activity
-import android.app.ActivityOptions
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
@@ -9,7 +8,6 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 
@@ -28,14 +26,10 @@ class SettingsPageActivity : Activity() {
         previousScreen = intent.getStringExtra("previous_screen")
         val backButton = findViewById<ImageView>(R.id.back_icon_left)
         backButton.setOnClickListener {
-            val intent = when (previousScreen) {
-                "ProfilePageActivity" -> Intent(this, ProfilePageActivity::class.java)
-                "LandingPageActivity" -> Intent(this, LandingPageActivity::class.java)
-                else -> Intent(this, LandingPageActivity::class.java)
-            }
-            startActivity(intent)
+            finish()
         }
     }
+
     fun showLogoutDialog(view: View) {
         val dialog = Dialog(this)
         dialog.setContentView(R.layout.dialog_logout)
@@ -49,6 +43,7 @@ class SettingsPageActivity : Activity() {
             Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show()
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
+            finish()
             dialog.dismiss()
         }
 

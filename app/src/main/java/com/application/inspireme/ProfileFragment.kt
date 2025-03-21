@@ -1,45 +1,43 @@
 package com.application.inspireme
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import androidx.fragment.app.Fragment
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 
-class ProfilePageActivity : Activity() {
+class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private lateinit var bannerImageView: ImageView
     private lateinit var profilePic: ImageView
     private lateinit var usernameTextView: TextView
     private lateinit var bioTextView: TextView
     private lateinit var sharedPreferences: SharedPreferences
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.profile_page)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        sharedPreferences = getSharedPreferences("UserProfile", Context.MODE_PRIVATE)
+        sharedPreferences = requireContext().getSharedPreferences("UserProfile", Context.MODE_PRIVATE)
 
-        bannerImageView = findViewById(R.id.BannerPic)
-        profilePic = findViewById(R.id.ProfilePic)
-        usernameTextView = findViewById(R.id.usernameee)
-        bioTextView = findViewById(R.id.biotextView)
+        bannerImageView = view.findViewById(R.id.BannerPic)
+        profilePic = view.findViewById(R.id.ProfilePic)
+        usernameTextView = view.findViewById(R.id.usernameee)
+        bioTextView = view.findViewById(R.id.biotextView)
 
         loadSavedData()
 
-        findViewById<ImageButton>(R.id.Homebutton).setOnClickListener {
-            startActivity(Intent(this, LandingPageActivity::class.java))
+        view.findViewById<ImageButton>(R.id.profileSettings).setOnClickListener {
+            startActivity(Intent(requireContext(), ProfileSettingsActivity::class.java))
         }
 
-        findViewById<ImageButton>(R.id.profileSettings).setOnClickListener {
-            startActivity(Intent(this, ProfileSettingsActivity::class.java))
-        }
-
-        findViewById<ImageButton>(R.id.button_settings).setOnClickListener {
-            val intent = Intent(this, SettingsPageActivity::class.java)
-            intent.putExtra("previous_screen", "ProfilePageActivity")
+        view.findViewById<ImageButton>(R.id.button_settings).setOnClickListener {
+            val intent = Intent(requireContext(), SettingsPageActivity::class.java)
+            intent.putExtra("previous_screen", "ProfileFragment")
             startActivity(intent)
         }
     }

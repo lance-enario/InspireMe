@@ -76,7 +76,7 @@ class ProfileSettingsActivity : AppCompatActivity() {
             .putString("bio", bioEditText.text.toString())
             .apply()
 
-        startActivity(Intent(this, ProfilePageActivity::class.java))
+        startActivity(Intent(this, ProfileFragment::class.java))
         finish()
     }
 }

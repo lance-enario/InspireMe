@@ -28,7 +28,7 @@ class LoginActivity : Activity() {
 //            if (usernameInput != emaill || passwordInput != password) {
 //                Toast.makeText(this, "Invalid Credentials. Please try again!", Toast.LENGTH_SHORT).show()
 //            } else {
-                val intent = Intent(this, LandingPageActivity::class.java)
+                val intent = Intent(this, NavigationBarActivity::class.java)
                 startActivity(intent)
 //            }
         }
