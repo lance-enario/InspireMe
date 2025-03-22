@@ -46,14 +46,10 @@ class SettingsPageActivity : Activity() {
         }
 
         backButton.setOnClickListener {
-            val intent = when (previousScreen) {
-                "ProfilePageActivity" -> Intent(this, ProfilePageActivity::class.java)
-                "LandingPageActivity" -> Intent(this, LandingPageActivity::class.java)
-                else -> Intent(this, LandingPageActivity::class.java)
-            }
-            startActivity(intent)
+
         }
     }
+
     fun showLogoutDialog() {
         val dialog = Dialog(this)
         dialog.setContentView(R.layout.dialog_logout)

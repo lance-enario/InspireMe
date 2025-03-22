@@ -13,7 +13,7 @@ class LoginActivity : Activity() {
 //        val emaill = "test@gmail.com"
 //        val password = "123"
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.login)
+        setContentView(R.layout.activity_login)
 
         val buttonLogin = findViewById<Button>(R.id.LoginButton)
         buttonLogin.setOnClickListener {

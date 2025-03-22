@@ -5,8 +5,6 @@ import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import com.application.inspireme.databinding.NavigationBarBinding
-
 
 class NavigationBarActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

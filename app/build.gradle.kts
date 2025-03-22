@@ -41,7 +41,7 @@ android {
 }
 
 dependencies {
-
+    implementation("com.github.yalantis:ucrop:2.2.8")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

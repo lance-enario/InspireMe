@@ -55,6 +55,52 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Profile Picture:"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toTopOf="@+id/ProfilePic"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.133"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.761" />
+
+        <ImageView
+            android:clickable="true"
+            android:focusable="true"
+            android:id="@+id/ProfilePic"
+            android:layout_width="170dp"
+            android:layout_height="170dp"
+            android:adjustViewBounds="true"
+            android:background="@drawable/circularborder"
+            android:clipToOutline="true"
+            android:scaleType="centerCrop"
+            android:src="@drawable/profile"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/editProfileButton"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/circularborder"
+            android:src="@drawable/edit_icon"
+            app:layout_constraintBottom_toBottomOf="@+id/ProfilePic"
+            app:layout_constraintEnd_toEndOf="@+id/ProfilePic"
+            android:layout_margin="8dp"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_marginTop="30dp"
@@ -77,10 +123,10 @@
             android:id="@+id/bannerImageView"
             android:layout_width="330dp"
             android:layout_height="170dp"
-            android:adjustViewBounds="true"
             android:background="@drawable/border"
             android:clipToOutline="true"
-            android:scaleType="fitCenter"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true"
             android:src="#ffb680"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -88,40 +134,15 @@
             app:layout_constraintTop_toTopOf="parent"
             android:focusable="true" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Profile Banner:"
-            android:textSize="18sp"
-            app:layout_constraintBottom_toTopOf="@+id/ProfilePic"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.133"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.761" />
-
-        <ImageView
-            android:clickable="true"
-            android:focusable="true"
-            android:id="@+id/ProfilePic"
-            android:layout_width="170dp"
-            android:layout_height="170dp"
-            android:adjustViewBounds="true"
-            android:background="@drawable/circularborder"
-            android:clipToOutline="true"
-            android:scaleType="fitCenter"
-            android:src="@drawable/profile"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
+            <ImageButton
+                android:id="@+id/editBannerButton"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/circularborder"
+                android:src="@drawable/edit_icon"
+                app:layout_constraintBottom_toBottomOf="@+id/bannerImageView"
+                app:layout_constraintEnd_toEndOf="@+id/bannerImageView"
+                android:layout_margin="8dp"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout

@@ -3,14 +3,14 @@ package com.application.inspireme
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import java.io.File
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private lateinit var bannerImageView: ImageView
@@ -42,16 +42,48 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Reload data when returning to the fragment
+        loadSavedData()
+    }
+
     private fun loadSavedData() {
+        // Get custom image paths
+        val customBannerUri = sharedPreferences.getString("customBannerUri", null)
+        val customProfileUri = sharedPreferences.getString("customProfileUri", null)
+
+        // Get fallback resource IDs
         val bannerResId = sharedPreferences.getInt("bannerImageResId", R.drawable.banner3)
         val profileResId = sharedPreferences.getInt("profileImageResId", R.drawable.profile)
+
+        // Try to load custom banner image
+        if (customBannerUri != null) {
+            loadImageFromUri(customBannerUri, bannerImageView)
+        } else {
+            bannerImageView.setImageResource(bannerResId)
+        }
+
+        // Try to load custom profile image
+        if (customProfileUri != null) {
+            loadImageFromUri(customProfileUri, profilePic)
+        } else {
+            profilePic.setImageResource(profileResId)
+        }
+
+        // Load text data
         val username = sharedPreferences.getString("username", "Default Name") ?: "Default Name"
         val bio = sharedPreferences.getString("bio", "No bio available") ?: "No bio available"
 
-        bannerImageView.setImageResource(bannerResId)
-        profilePic.setImageResource(profileResId)
-
         usernameTextView.text = username
         bioTextView.text = bio
+    }
+
+    private fun loadImageFromUri(uri: String, imageView: ImageView) {
+        val imageFile = File(uri)
+        if (imageFile.exists()) {
+            val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
+            imageView.setImageBitmap(bitmap)
+        }
     }
 }
