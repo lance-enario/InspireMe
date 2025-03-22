@@ -4,33 +4,57 @@ import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.ListView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
+import com.application.inspireme.helper.SettingItem
+import com.application.inspireme.helper.SettingsAdapter
 
 class SettingsPageActivity : Activity() {
     private var previousScreen: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.settings_screen)
-
-        val aboutButton = findViewById<ConstraintLayout>(R.id.about_constraint)
-        aboutButton.setOnClickListener {
-            val aboutintent = Intent(this, AboutActivity::class.java)
-            startActivity(aboutintent)
-        }
+        setContentView(R.layout.activity_settings)
 
         previousScreen = intent.getStringExtra("previous_screen")
         val backButton = findViewById<ImageView>(R.id.back_icon_left)
+
+        val settingsList = listOf(
+            SettingItem(R.drawable.account_icon, "Account", R.drawable.arrow),
+            SettingItem(R.drawable.notifications_icon, "Notifications", R.drawable.arrow),
+            SettingItem(R.drawable.privacy_icon, "Privacy", R.drawable.arrow),
+            SettingItem(R.drawable.language_icon, "Language", R.drawable.arrow),
+            SettingItem(R.drawable.about_icon, "About", R.drawable.arrow),
+            SettingItem(R.drawable.logout_icon, "Logout", null)
+        )
+
+        val adapter = SettingsAdapter(this, settingsList)
+        val listView = findViewById<ListView>(R.id.listView)
+        listView.adapter = adapter
+
+        listView.setOnItemClickListener { _, _, position, _ ->
+            val setting = settingsList[position]
+            when (setting.text) {
+                "Account" -> startActivity(Intent(this, AccountActivity::class.java))
+                "Notifications" -> startActivity(Intent(this, NotificationsActivity::class.java))
+                "Privacy" -> startActivity(Intent(this, PrivacyActivity::class.java))
+                "Language" -> startActivity(Intent(this, LanguageActivity::class.java))
+                "About" -> startActivity(Intent(this, AboutActivity::class.java))
+                "Logout" -> showLogoutDialog()
+            }
+        }
+
         backButton.setOnClickListener {
-            finish()
+            val intent = when (previousScreen) {
+                "ProfilePageActivity" -> Intent(this, ProfilePageActivity::class.java)
+                "LandingPageActivity" -> Intent(this, LandingPageActivity::class.java)
+                else -> Intent(this, LandingPageActivity::class.java)
+            }
+            startActivity(intent)
         }
     }
-
-    fun showLogoutDialog(view: View) {
+    fun showLogoutDialog() {
         val dialog = Dialog(this)
         dialog.setContentView(R.layout.dialog_logout)
         dialog.setCancelable(false)
@@ -43,7 +67,6 @@ class SettingsPageActivity : Activity() {
             Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show()
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
-            finish()
             dialog.dismiss()
         }
 

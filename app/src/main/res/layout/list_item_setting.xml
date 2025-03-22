@@ -1,0 +1,32 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:gravity="center_vertical">
+
+    <!-- Icon on the left -->
+    <ImageView
+        android:id="@+id/icon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/account_icon" />
+
+    <!-- Text in the middle -->
+    <TextView
+        android:id="@+id/setting_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Setting Name"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:layout_marginLeft="16dp" />
+
+    <!-- Arrow icon on the right -->
+    <ImageView
+        android:id="@+id/arrow_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/arrow" />
+</LinearLayout>
