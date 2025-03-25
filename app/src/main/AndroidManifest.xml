@@ -30,7 +30,7 @@
             android:name=".ProfileSettingsActivity"
             android:exported="false" />
         <activity
-            android:name=".AboutActivity"
+            android:name=".LoginActivity"
             android:exported="false" />
         <activity
             android:name=".SettingsPageActivity"
@@ -39,7 +39,7 @@
             android:name=".RegisterActivity"
             android:exported="false" />
         <activity
-            android:name=".LoginActivity"
+            android:name=".AboutActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

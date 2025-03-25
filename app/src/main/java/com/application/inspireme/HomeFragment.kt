@@ -16,7 +16,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         view.findViewById<ImageButton>(R.id.button_settings).setOnClickListener {
             val intent = Intent(requireContext(), SettingsPageActivity::class.java)
-            intent.putExtra("previous_screen", "ProfileFragment")
+            intent.putExtra("previous_screen", "HomeFragment")
             startActivity(intent)
         }
     }

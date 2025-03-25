@@ -1,6 +1,5 @@
 package com.application.inspireme
 
-import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
@@ -8,10 +7,11 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.ListView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.application.inspireme.helper.SettingItem
 import com.application.inspireme.helper.SettingsAdapter
 
-class SettingsPageActivity : Activity() {
+class SettingsPageActivity : AppCompatActivity() {
     private var previousScreen: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +46,8 @@ class SettingsPageActivity : Activity() {
         }
 
         backButton.setOnClickListener {
-
+            val previousScreen = intent.getStringExtra("previous_screen")
+            //NEED TO GO BACK TO FRAGMENT
         }
     }
 
