@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Patterns
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 
 class LoginActivity : Activity() {
@@ -31,6 +32,11 @@ class LoginActivity : Activity() {
                 val intent = Intent(this, NavigationBarActivity::class.java)
                 startActivity(intent)
 //            }
+        }
+
+        val buttonRegister = findViewById<TextView>(R.id.SignupText)
+        buttonRegister.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
         }
     }
 }
