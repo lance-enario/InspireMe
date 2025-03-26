@@ -1,6 +1,7 @@
 package com.application.inspireme
 
 import android.app.Dialog
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -46,8 +47,26 @@ class SettingsPageActivity : AppCompatActivity() {
         }
 
         backButton.setOnClickListener {
-            val previousScreen = intent.getStringExtra("previous_screen")
-            //NEED TO GO BACK TO FRAGMENT
+            onBackPressed()
+        }
+    }
+
+    override fun onBackPressed() {
+        when (previousScreen) {
+            "HomeFragment" -> {
+                val intent = Intent(this, NavigationBarActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
+            "ProfileFragment" -> {
+                val intent = Intent(this, NavigationBarActivity::class.java)
+                intent.putExtra("openProfileFragment", true)
+                startActivity(intent)
+                finish()
+            }
+            else -> {
+                super.onBackPressed()
+            }
         }
     }
 
@@ -61,9 +80,15 @@ class SettingsPageActivity : AppCompatActivity() {
 
         cancelButton.setOnClickListener { dialog.dismiss() }
         logoutButton.setOnClickListener {
+            // Clear logged in state
+            val sharedPreferences = getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
+            sharedPreferences.edit().putBoolean("isLoggedIn", false).apply()
+            
             Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show()
             val intent = Intent(this, LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
+            finish()
             dialog.dismiss()
         }
 

@@ -28,14 +28,11 @@ import java.io.IOException
 import java.util.UUID
 
 class ProfileSettingsActivity : AppCompatActivity() {
-    // Constants for image request types
     private val REQUEST_BANNER_IMAGE = 0
     private val REQUEST_PROFILE_IMAGE = 1
 
-    // Current image selection tracker
     private var currentImageRequest = REQUEST_BANNER_IMAGE
 
-    // Permission launcher
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
@@ -49,7 +46,6 @@ class ProfileSettingsActivity : AppCompatActivity() {
             }
         }
 
-    // Image picker launcher
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
@@ -61,7 +57,6 @@ class ProfileSettingsActivity : AppCompatActivity() {
             }
         }
 
-    // UCrop result launcher
     private val cropImageLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK && result.data != null) {
@@ -145,7 +140,6 @@ class ProfileSettingsActivity : AppCompatActivity() {
             }
         }
     }
-    // Check and request the appropriate permission based on Android version
     private fun checkAndRequestPermission() {
         val permission = when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> Manifest.permission.READ_MEDIA_IMAGES
@@ -165,7 +159,6 @@ class ProfileSettingsActivity : AppCompatActivity() {
         pickImageLauncher.launch(intent)
     }
 
-    // Launch UCrop for image cropping
     private fun launchImageCropper(sourceUri: Uri) {
         val destinationUri = Uri.fromFile(File(cacheDir, "cropped_${UUID.randomUUID()}.jpg"))
 
@@ -185,7 +178,6 @@ class ProfileSettingsActivity : AppCompatActivity() {
             setToolbarWidgetColor(ContextCompat.getColor(this@ProfileSettingsActivity, R.color.black))
         }
 
-        // Set aspect ratio based on image type
         val uCropIntent = when (currentImageRequest) {
             REQUEST_BANNER_IMAGE -> {
                 // For banner, use a wider aspect ratio (e.g., 16:9)
@@ -230,44 +222,35 @@ class ProfileSettingsActivity : AppCompatActivity() {
         }
     }
 
-    // Load saved profile data
     private fun loadSavedData() {
-        // Load custom images if they exist
         customBannerUri = sharedPreferences.getString("customBannerUri", null)
         customProfileUri = sharedPreferences.getString("customProfileUri", null)
 
-        // Load default resource IDs as fallback
         selectedBannerResId = sharedPreferences.getInt("bannerImageResId", R.drawable.banner3)
         selectedProfileResId = sharedPreferences.getInt("profileImageResId", R.drawable.profile)
 
-        // Set banner image
         if (customBannerUri != null) {
             loadImageFromUri(customBannerUri, bannerImageView)
         } else {
             bannerImageView.setImageResource(selectedBannerResId)
         }
 
-        // Set profile image
         if (customProfileUri != null) {
             loadImageFromUri(customProfileUri, profilePic)
         } else {
             profilePic.setImageResource(selectedProfileResId)
         }
 
-        // Set text fields
         usernameEditText.setText(sharedPreferences.getString("username", ""))
         bioEditText.setText(sharedPreferences.getString("bio", ""))
     }
 
-    // Save profile data
     private fun saveData() {
         val editor = sharedPreferences.edit()
 
-        // Save resource IDs as fallbacks
         editor.putInt("bannerImageResId", selectedBannerResId)
         editor.putInt("profileImageResId", selectedProfileResId)
 
-        // Save custom image URIs if they exist
         if (customBannerUri != null) {
             editor.putString("customBannerUri", customBannerUri)
         }
@@ -276,7 +259,6 @@ class ProfileSettingsActivity : AppCompatActivity() {
             editor.putString("customProfileUri", customProfileUri)
         }
 
-        // Save text data
         editor.putString("username", usernameEditText.text.toString())
         editor.putString("bio", bioEditText.text.toString())
         editor.apply()

@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
 
 class NavigationBarActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,9 +15,16 @@ class NavigationBarActivity : AppCompatActivity() {
         val btnHome = findViewById<ImageButton>(R.id.Homebutton)
         val btnProfile = findViewById<ImageButton>(R.id.Profilebutton)
 
-        supportFragmentManager.beginTransaction().apply {
-            replace(R.id.fragmentContainer, homefragment)
-            commit()
+        if (intent.getBooleanExtra("openProfileFragment", false)) {
+            supportFragmentManager.beginTransaction().apply {
+                replace(R.id.fragmentContainer, profilefragment)
+                commit()
+            }
+        } else {
+            supportFragmentManager.beginTransaction().apply {
+                replace(R.id.fragmentContainer, homefragment)
+                commit()
+            }
         }
 
         btnHome.setOnClickListener {
@@ -34,5 +40,10 @@ class NavigationBarActivity : AppCompatActivity() {
                 commit()
             }
         }
+    }
+
+    override fun onBackPressed() {
+        // Prevent going back to login screen by not calling super.onBackPressed()
+        // You can show a dialog asking if the user wants to exit the app instead
     }
 }

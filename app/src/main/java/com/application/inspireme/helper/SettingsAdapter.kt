@@ -29,10 +29,8 @@ public class SettingsAdapter(private val context: Context, private val settingsL
             view = LayoutInflater.from(context).inflate(R.layout.list_item_setting, parent, false)
         }
 
-        // Get the setting data
         val settingItem = settingsList[position]
 
-        // Set the icon, text, and arrow for the item
         val iconImageView = view?.findViewById<ImageView>(R.id.icon)
         val textView = view?.findViewById<TextView>(R.id.setting_text)
         val arrowImageView = view?.findViewById<ImageView>(R.id.arrow_icon)
