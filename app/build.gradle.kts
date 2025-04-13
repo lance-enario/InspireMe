@@ -41,6 +41,13 @@ android {
 }
 
 dependencies {
+    // Retrofit for API calls
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    
+    // Gson for JSON parsing
+    implementation("com.google.code.gson:gson:2.9.0")
+
     implementation("com.github.yalantis:ucrop:2.2.8")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

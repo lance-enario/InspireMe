@@ -27,8 +27,6 @@ class AboutActivity : Activity() {
             showCreatorDialog(position)
         }
 
-
-
         val backButton = findViewById<ImageView>(R.id.back_icon_about)
         backButton.setOnClickListener {
             val intent = Intent(this, SettingsPageActivity::class.java)
