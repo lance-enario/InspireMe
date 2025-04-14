@@ -72,7 +72,8 @@
             android:layout_height="45dp"
             android:layout_gravity="center_horizontal"
             android:background="@drawable/border"
-            android:hint="Email"/>
+            android:hint="Email"
+            android:singleLine="true"/>
 
         <EditText
             android:id="@+id/Password"
@@ -82,7 +83,8 @@
             android:layout_height="45dp"
             android:layout_gravity="center_horizontal"
             android:background="@drawable/border"
-            android:hint="Password"/>
+            android:hint="Password"
+            android:singleLine="true"/>
 
         <EditText
             android:id="@+id/ConfirmPassword"
@@ -91,7 +93,8 @@
             android:layout_height="45dp"
             android:layout_gravity="center_horizontal"
             android:background="@drawable/border"
-            android:hint="Confirm Password"/>
+            android:hint="Confirm Password"
+            android:singleLine="true"/>
 
     </LinearLayout>
 
