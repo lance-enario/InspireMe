@@ -106,6 +106,13 @@ class ProfileSettingsActivity : AppCompatActivity() {
         val saveButton: Button = findViewById(R.id.Save)
         val cancelButton: Button = findViewById(R.id.Cancel)
 
+        findViewById<ImageView>(R.id.back_icon_left).setOnClickListener {
+            val intent = Intent(this, NavigationBarActivity::class.java)
+            intent.putExtra("openProfileFragment", true)
+            startActivity(intent)
+            finish()
+        }
+
         loadSavedData()
 
         bannerImageView.setOnClickListener {

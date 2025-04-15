@@ -1,6 +1,7 @@
 package com.application.inspireme
 
 import HomeFragment
+import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +16,7 @@ class NavigationBarActivity : AppCompatActivity() {
         val profilefragment = ProfileFragment()
         val btnHome = findViewById<ImageButton>(R.id.Homebutton)
         val btnProfile = findViewById<ImageButton>(R.id.Profilebutton)
+
 
         if (intent.getBooleanExtra("openProfileFragment", false)) {
             supportFragmentManager.beginTransaction().apply {
@@ -43,7 +45,9 @@ class NavigationBarActivity : AppCompatActivity() {
         }
     }
 
+
     override fun onBackPressed() {
+        super.onBackPressed()
         // Prevent going back to login screen by not calling super.onBackPressed()
         // You can show a dialog asking if the user wants to exit the app instead
     }

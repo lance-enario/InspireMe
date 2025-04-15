@@ -52,22 +52,17 @@ class SettingsPageActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        when (previousScreen) {
-            "HomeFragment" -> {
-                val intent = Intent(this, NavigationBarActivity::class.java)
-                startActivity(intent)
-                finish()
-            }
-            "ProfileFragment" -> {
-                val intent = Intent(this, NavigationBarActivity::class.java)
-                intent.putExtra("openProfileFragment", true)
-                startActivity(intent)
-                finish()
-            }
-            else -> {
-                super.onBackPressed()
-            }
+        super.onBackPressed()
+        val previousFragment = intent.getStringExtra("previous_fragment")
+        val intent = Intent(this, NavigationBarActivity::class.java)
+
+        when (previousFragment) {
+            "ProfileFragment" -> intent.putExtra("openProfileFragment", true)
+            "HomeFragment" -> intent.putExtra("openProfileFragment", false)
         }
+
+        startActivity(intent)
+        finish()
     }
 
     fun showLogoutDialog() {

@@ -32,12 +32,14 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         loadSavedData()
 
         view.findViewById<ImageButton>(R.id.profileSettings).setOnClickListener {
-            startActivity(Intent(requireContext(), ProfileSettingsActivity::class.java))
+            val intent = Intent(requireContext(), ProfileSettingsActivity::class.java)
+            intent.putExtra("previous_fragment", "ProfileFragment")
+            startActivity(intent)
         }
 
         view.findViewById<ImageButton>(R.id.button_settings).setOnClickListener {
             val intent = Intent(requireContext(), SettingsPageActivity::class.java)
-            intent.putExtra("previous_screen", "ProfileFragment")
+            intent.putExtra("previous_fragment", "ProfileFragment")
             startActivity(intent)
         }
     }
