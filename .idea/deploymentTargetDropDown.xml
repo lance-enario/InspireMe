@@ -10,12 +10,12 @@
               <deviceKey>
                 <Key>
                   <type value="SERIAL_NUMBER" />
-                  <value value="emulator-5554" />
+                  <value value="e4adef03" />
                 </Key>
               </deviceKey>
             </Target>
           </runningDeviceTargetSelectedWithDropDown>
-          <timeTargetWasSelectedWithDropDown value="2025-04-15T12:30:31.857385600Z" />
+          <timeTargetWasSelectedWithDropDown value="2025-04-16T07:31:20.416821700Z" />
           <targetsSelectedWithDialog>
             <Target>
               <type value="QUICK_BOOT_TARGET" />
@@ -28,9 +28,6 @@
             </Target>
           </targetsSelectedWithDialog>
         </State>
-      </entry>
-      <entry key="app">
-        <State />
       </entry>
     </value>
   </component>
