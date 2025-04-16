@@ -3,6 +3,7 @@ package com.application.inspireme
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Resources
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -63,14 +64,22 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         if (customBannerUri != null) {
             loadImageFromUri(customBannerUri, bannerImageView)
         } else {
-            bannerImageView.setImageResource(bannerResId)
+            try {
+                bannerImageView.setImageResource(bannerResId)
+            } catch (e: Resources.NotFoundException) {
+                bannerImageView.setImageResource(R.drawable.defaultbg) // Use a default fallback
+            }
         }
 
         // Try to load custom profile image
         if (customProfileUri != null) {
             loadImageFromUri(customProfileUri, profilePic)
         } else {
-            profilePic.setImageResource(profileResId)
+            try {
+                profilePic.setImageResource(profileResId)
+            } catch (e: Resources.NotFoundException) {
+                profilePic.setImageResource(R.drawable.profile) // Use a default fallback
+            }
         }
 
         // Load text data
