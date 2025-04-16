@@ -47,8 +47,11 @@ dependencies {
     
     // Gson for JSON parsing
     implementation("com.google.code.gson:gson:2.9.0")
-
     implementation("com.github.yalantis:ucrop:2.2.8")
+
+    // CircleImageView (this is used in the profile and profile settings)
+    implementation(libs.de.hdodenhof.circleimageview)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

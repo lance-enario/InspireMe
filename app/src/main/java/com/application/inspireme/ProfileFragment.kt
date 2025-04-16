@@ -10,11 +10,13 @@ import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import com.google.android.material.button.MaterialButton
+import de.hdodenhof.circleimageview.CircleImageView
 import java.io.File
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private lateinit var bannerImageView: ImageView
-    private lateinit var profilePic: ImageView
+    private lateinit var profilePic: CircleImageView
     private lateinit var usernameTextView: TextView
     private lateinit var bioTextView: TextView
     private lateinit var sharedPreferences: SharedPreferences
@@ -24,21 +26,25 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         sharedPreferences = requireContext().getSharedPreferences("UserProfile", Context.MODE_PRIVATE)
 
-        bannerImageView = view.findViewById(R.id.BannerPic)
-        profilePic = view.findViewById(R.id.ProfilePic)
-        usernameTextView = view.findViewById(R.id.usernameee)
-        bioTextView = view.findViewById(R.id.biotextView)
+        // Initialize views with correct IDs from fragment_profile.xml
+        bannerImageView = view.findViewById(R.id.banner_image)
+        profilePic = view.findViewById(R.id.profile_picture)
+        usernameTextView = view.findViewById(R.id.username_text)
+        bioTextView = view.findViewById(R.id.bio_text)
 
+        // Load data from SharedPreferences
         loadSavedData()
 
-        view.findViewById<ImageButton>(R.id.profileSettings).setOnClickListener {
-            val intent = Intent(requireContext(), ProfileSettingsActivity::class.java)
+        // Set up Settings button click listener
+        view.findViewById<ImageButton>(R.id.button_settings).setOnClickListener {
+            val intent = Intent(requireContext(), SettingsPageActivity::class.java)
             intent.putExtra("previous_fragment", "ProfileFragment")
             startActivity(intent)
         }
 
-        view.findViewById<ImageButton>(R.id.button_settings).setOnClickListener {
-            val intent = Intent(requireContext(), SettingsPageActivity::class.java)
+        // Set up Edit Profile button click listener
+        view.findViewById<MaterialButton>(R.id.editProfileButton).setOnClickListener {
+            val intent = Intent(requireContext(), ProfileSettingsActivity::class.java)
             intent.putExtra("previous_fragment", "ProfileFragment")
             startActivity(intent)
         }
@@ -64,6 +70,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             loadImageFromUri(customBannerUri, bannerImageView)
         } else {
             bannerImageView.setImageResource(bannerResId)
+            // Add green tint to match the app theme
+            bannerImageView.setColorFilter(requireContext().getColor(R.color.green))
         }
 
         // Try to load custom profile image
@@ -86,6 +94,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         if (imageFile.exists()) {
             val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
             imageView.setImageBitmap(bitmap)
+            // Remove any color filters that may have been applied
+            imageView.clearColorFilter()
         }
     }
 }

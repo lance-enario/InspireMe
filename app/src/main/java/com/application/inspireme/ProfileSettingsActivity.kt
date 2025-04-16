@@ -26,6 +26,8 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.UUID
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
 
 class ProfileSettingsActivity : AppCompatActivity() {
     private val REQUEST_BANNER_IMAGE = 0
@@ -103,14 +105,11 @@ class ProfileSettingsActivity : AppCompatActivity() {
         profilePic = findViewById(R.id.ProfilePic)
         usernameEditText = findViewById(R.id.Username)
         bioEditText = findViewById(R.id.Bio)
-        val saveButton: Button = findViewById(R.id.Save)
-        val cancelButton: Button = findViewById(R.id.Cancel)
+        val saveButton: MaterialButton = findViewById(R.id.Save)
+        val cancelButton: MaterialButton = findViewById(R.id.Cancel)
 
         findViewById<ImageView>(R.id.back_icon_left).setOnClickListener {
-            val intent = Intent(this, NavigationBarActivity::class.java)
-            intent.putExtra("openProfileFragment", true)
-            startActivity(intent)
-            finish()
+            onBackPressed()
         }
 
         loadSavedData()
