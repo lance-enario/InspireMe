@@ -40,6 +40,13 @@ android {
     }
 }
 
+repositories {
+    google()
+    mavenCentral()
+    maven { url = uri("https://jitpack.io") }
+
+}
+
 dependencies {
     // Retrofit for API calls
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
@@ -48,6 +55,10 @@ dependencies {
     // Gson for JSON parsing
     implementation("com.google.code.gson:gson:2.9.0")
     implementation("com.github.yalantis:ucrop:2.2.8")
+
+    // Color selection
+    implementation("com.github.yukuku:ambilwarna:2.0.1")
+
 
     // CircleImageView (this is used in the profile and profile settings)
     implementation(libs.de.hdodenhof.circleimageview)

@@ -2,4 +2,32 @@
     <string name="app_name">InspireMe</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string-array name="font_styles">
+        <item>Default</item>
+        <item>Sans</item>
+        <item>Serif</item>
+        <item>Monospace</item>
+    </string-array>
+
+    <string-array name="font_sizes">
+        <item>12</item>
+        <item>14</item>
+        <item>16</item>
+        <item>18</item>
+        <item>20</item>
+        <item>24</item>
+    </string-array>
+
+    <string-array name="text_alignments">
+        <item>Left</item>
+        <item>Center</item>
+        <item>Right</item>
+    </string-array>
+
+    <string-array name="text_styles">
+        <item>Normal</item>
+        <item>Bold</item>
+        <item>Italic</item>
+        <item>Underline</item>
+    </string-array>
 </resources>

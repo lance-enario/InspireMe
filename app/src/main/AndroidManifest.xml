@@ -27,6 +27,9 @@
         android:theme="@style/Theme.InspireMe"
         tools:targetApi="31">
         <activity
+            android:name=".CreateActivity"
+            android:exported="false" />
+        <activity
             android:name=".GenerateQuoteActivity"
             android:exported="false" />
         <activity
