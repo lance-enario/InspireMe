@@ -11,6 +11,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.application.inspireme.helper.SettingItem
 import com.application.inspireme.helper.SettingsAdapter
+import com.google.android.gms.common.util.CollectionUtils.listOf
+import com.google.firebase.auth.FirebaseAuth
 
 class SettingsPageActivity : AppCompatActivity() {
     private var previousScreen: String? = null
@@ -66,27 +68,33 @@ class SettingsPageActivity : AppCompatActivity() {
     }
 
     fun showLogoutDialog() {
-        val dialog = Dialog(this)
-        dialog.setContentView(R.layout.dialog_logout)
-        dialog.setCancelable(false)
+    val dialog = Dialog(this)
+    dialog.setContentView(R.layout.dialog_logout)
+    dialog.setCancelable(false)
 
-        val cancelButton = dialog.findViewById<Button>(R.id.cancel_button)
-        val logoutButton = dialog.findViewById<Button>(R.id.logout_button)
+    val cancelButton = dialog.findViewById<Button>(R.id.cancel_button)
+    val logoutButton = dialog.findViewById<Button>(R.id.logout_button)
 
-        cancelButton.setOnClickListener { dialog.dismiss() }
-        logoutButton.setOnClickListener {
-            // Clear logged in state
-            val sharedPreferences = getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
-            sharedPreferences.edit().putBoolean("isLoggedIn", false).apply()
-            
-            Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show()
-            val intent = Intent(this, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
-            dialog.dismiss()
-        }
-
-        dialog.show()
+    cancelButton.setOnClickListener { dialog.dismiss() }
+    logoutButton.setOnClickListener {
+        // Sign out from Firebase Auth
+        val auth = FirebaseAuth.getInstance()
+        auth.signOut()
+        
+        // Clear logged in state in SharedPreferences
+        val sharedPreferences = getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.clear() // Clear all preferences
+        editor.apply()
+        
+        Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show()
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+        dialog.dismiss()
     }
+
+    dialog.show()
+}
 }

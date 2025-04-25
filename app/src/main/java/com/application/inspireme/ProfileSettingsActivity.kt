@@ -28,6 +28,7 @@ import java.io.IOException
 import java.util.UUID
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.database.FirebaseDatabase
 
 class ProfileSettingsActivity : AppCompatActivity() {
     private val REQUEST_BANNER_IMAGE = 0
@@ -265,9 +266,31 @@ class ProfileSettingsActivity : AppCompatActivity() {
             editor.putString("customProfileUri", customProfileUri)
         }
 
-        editor.putString("username", usernameEditText.text.toString())
-        editor.putString("bio", bioEditText.text.toString())
+        val username = usernameEditText.text.toString()
+        val bio = bioEditText.text.toString()
+        
+        editor.putString("username", username)
+        editor.putString("bio", bio)
         editor.apply()
+
+        // Also save to Firebase if the user is logged in
+        val userAuthPrefs = getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
+        val userId = userAuthPrefs.getString("userId", null)
+        
+        if (userId != null) {
+            val database = FirebaseDatabase.getInstance()
+            val userRef = database.getReference("users").child(userId)
+            
+            val updates = HashMap<String, Any>()
+            updates["username"] = username
+            updates["bio"] = bio
+            
+            userRef.updateChildren(updates).addOnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Toast.makeText(this, "Failed to update profile on server", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
 
         finish()
     }

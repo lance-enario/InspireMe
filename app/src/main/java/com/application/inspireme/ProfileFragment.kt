@@ -10,7 +10,12 @@ import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import com.google.android.material.button.MaterialButton
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import de.hdodenhof.circleimageview.CircleImageView
 import java.io.File
 
@@ -25,6 +30,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         super.onViewCreated(view, savedInstanceState)
 
         sharedPreferences = requireContext().getSharedPreferences("UserProfile", Context.MODE_PRIVATE)
+        val userAuthPrefs = requireContext().getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
+        val userId = userAuthPrefs.getString("userId", null)
 
         // Initialize views with correct IDs from fragment_profile.xml
         bannerImageView = view.findViewById(R.id.banner_image)
@@ -32,8 +39,13 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         usernameTextView = view.findViewById(R.id.username_text)
         bioTextView = view.findViewById(R.id.bio_text)
 
-        // Load data from SharedPreferences
-        loadSavedData()
+        // Load data from Firebase if the user is logged in
+        if (userId != null) {
+            loadUserDataFromFirebase(userId)
+        } else {
+            // Fallback to SharedPreferences if not logged in
+            loadSavedData()
+        }
 
         // Set up Settings button click listener
         view.findViewById<ImageButton>(R.id.button_settings).setOnClickListener {
@@ -53,7 +65,65 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     override fun onResume() {
         super.onResume()
         // Reload data when returning to the fragment
-        loadSavedData()
+        val userAuthPrefs = requireContext().getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
+        val userId = userAuthPrefs.getString("userId", null)
+        
+        if (userId != null) {
+            loadUserDataFromFirebase(userId)
+        } else {
+            loadSavedData()
+        }
+    }
+
+    private fun loadUserDataFromFirebase(userId: String) {
+        val database = FirebaseDatabase.getInstance()
+        val userRef = database.getReference("users").child(userId)
+        
+        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    val username = snapshot.child("username").getValue(String::class.java) ?: "Default Name"
+                    val bio = snapshot.child("bio").getValue(String::class.java) ?: "No bio available"
+                    
+                    usernameTextView.text = username
+                    bioTextView.text = bio
+                    
+                    // For images, we still use local storage as Firebase Storage would be needed for images
+                    // Load custom image paths
+                    val customBannerUri = sharedPreferences.getString("customBannerUri", null)
+                    val customProfileUri = sharedPreferences.getString("customProfileUri", null)
+                    
+                    // Get fallback resource IDs
+                    val bannerResId = sharedPreferences.getInt("bannerImageResId", R.drawable.banner3)
+                    val profileResId = sharedPreferences.getInt("profileImageResId", R.drawable.profile)
+                    
+                    // Try to load custom banner image
+                    if (customBannerUri != null) {
+                        loadImageFromUri(customBannerUri, bannerImageView)
+                    } else {
+                        bannerImageView.setImageResource(bannerResId)
+                        // Add green tint to match the app theme
+                        bannerImageView.setColorFilter(requireContext().getColor(R.color.green))
+                    }
+                    
+                    // Try to load custom profile image
+                    if (customProfileUri != null) {
+                        loadImageFromUri(customProfileUri, profilePic)
+                    } else {
+                        profilePic.setImageResource(profileResId)
+                    }
+                } else {
+                    // User not found, fall back to local data
+                    loadSavedData()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(requireContext(), "Failed to load profile: ${error.message}", Toast.LENGTH_SHORT).show()
+                // Fall back to local data on error
+                loadSavedData()
+            }
+        })
     }
 
     private fun loadSavedData() {
@@ -90,12 +160,23 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     }
 
     private fun loadImageFromUri(uri: String, imageView: ImageView) {
-        val imageFile = File(uri)
-        if (imageFile.exists()) {
-            val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
-            imageView.setImageBitmap(bitmap)
-            // Remove any color filters that may have been applied
-            imageView.clearColorFilter()
+        try {
+            val file = File(uri)
+            if (file.exists()) {
+                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                imageView.setImageBitmap(bitmap)
+                if (imageView == bannerImageView) {
+                    imageView.clearColorFilter()
+                }
+            }
+        } catch (e: Exception) {
+            // If there's an error loading the image, load the default
+            if (imageView == bannerImageView) {
+                imageView.setImageResource(R.drawable.banner3)
+                imageView.setColorFilter(requireContext().getColor(R.color.green))
+            } else {
+                imageView.setImageResource(R.drawable.profile)
+            }
         }
     }
 }

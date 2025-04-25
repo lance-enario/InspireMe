@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "163958035818",
+    "firebase_url": "https://inspireme-d33f3-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "inspireme-d33f3",
+    "storage_bucket": "inspireme-d33f3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:163958035818:android:ea843583c15db24108c113",
+        "android_client_info": {
+          "package_name": "com.application.inspireme"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "163958035818-4rtofflkhodss0pl8e0n90bvf1691g14.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKUDFvH8Ri6Cd429nAZ0k8myMXiUxHEho"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "163958035818-4rtofflkhodss0pl8e0n90bvf1691g14.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
