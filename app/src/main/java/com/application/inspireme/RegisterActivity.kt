@@ -14,6 +14,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.application.inspireme.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 
@@ -104,13 +105,14 @@ class RegisterActivity : Activity() {
                             val database = FirebaseDatabase.getInstance()
                             val usersRef = database.getReference("users")
                             
-                            val userData = HashMap<String, Any>()
-                            userData["email"] = email.lowercase()
-                            userData["username"] = email.substringBefore("@")
-                            userData["bio"] = "No bio available"
-                            userData["createdAt"] = System.currentTimeMillis()
+                            val user = User(
+                                email = email.lowercase(),
+                                username = email.substringBefore("@"),
+                                bio = "No bio available",
+                                createdAt = System.currentTimeMillis()
+                            )
                             
-                            usersRef.child(userId).setValue(userData)
+                            usersRef.child(userId).setValue(user)
                                 .addOnCompleteListener { dbTask ->
                                     progressBar?.visibility = View.GONE
                                     

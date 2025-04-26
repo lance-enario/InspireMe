@@ -7,7 +7,7 @@
     android:layout_height="match_parent">
 
 <androidx.constraintlayout.widget.ConstraintLayout
-    android:background="#81C784"
+    android:background="@color/green"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -93,6 +93,7 @@
                 android:layout_marginBottom="15dp"
                 android:background="@drawable/border"
                 android:hint="Password"
+                android:inputType="textPassword"
                 android:paddingLeft="16dp"
                 android:singleLine="true" />
 
@@ -102,7 +103,8 @@
                 android:layout_height="45dp"
                 android:layout_gravity="center_horizontal"
                 android:background="@drawable/border"
-                android:hint="Password"
+                android:hint="Confirm Password"
+                android:inputType="textPassword"
                 android:paddingLeft="16dp"
                 android:singleLine="true" />
 

@@ -38,6 +38,11 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
+        // Add these lines to ensure metadata compatibility
+        apiVersion = "1.9"
+        languageVersion = "1.9"
+        // This helps with compatibility issues
+        freeCompilerArgs += listOf("-Xjvm-default=all")
     }
 }
 
@@ -50,7 +55,7 @@ repositories {
 
 dependencies {
     // Firebase dependencies
-    implementation(platform("com.google.firebase:firebase-bom:32.2.0"))
+    implementation(platform("com.google.firebase:firebase-bom:31.5.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-database-ktx")
     implementation("com.google.firebase:firebase-analytics-ktx")
@@ -75,7 +80,6 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
-    implementation(libs.firebase.auth.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

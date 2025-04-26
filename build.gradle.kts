@@ -5,3 +5,9 @@ plugins {
     id("com.google.gms.google-services") version "4.3.15" apply false
 }
 
+buildscript {
+    dependencies {
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0")
+    }
+}
+

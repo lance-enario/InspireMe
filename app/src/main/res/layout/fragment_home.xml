@@ -10,9 +10,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#ffb680"
+        android:background="@color/green"
         android:orientation="vertical">
-
 
         <SearchView
             android:id="@+id/searchView"
@@ -44,6 +43,7 @@
             android:layout_marginTop="16dp"
             android:fillViewport="true"
             android:scrollbarThumbHorizontal="@android:color/transparent"
+            android:background="@color/white"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/searchView">
@@ -53,50 +53,48 @@
                 android:layout_height="match_parent"
                 android:orientation="horizontal">
 
-                <Button
-                    android:layout_width="125dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_margin="5dp"
-                    android:layout_weight="1"
-                    android:backgroundTint="#ed7c2a"
-                    android:textColor="@color/white"
-                    android:background="@drawable/circularborder"
-                    android:text="Welcome" />
 
-                <Button
+                <androidx.appcompat.widget.AppCompatButton
                     android:layout_width="125dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_margin="5dp"
                     android:layout_weight="1"
+                    android:textColor="@color/white"
+                    android:backgroundTint="@color/green"
                     android:background="@drawable/circularborder"
                     android:text="For You" />
 
-                <Button
+                <androidx.appcompat.widget.AppCompatButton
                     android:layout_width="125dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_margin="5dp"
                     android:layout_weight="1"
+                    android:textColor="@color/white"
+                    android:backgroundTint="@color/green"
                     android:background="@drawable/circularborder"
                     android:text="Recent" />
 
-                <Button
+                <androidx.appcompat.widget.AppCompatButton
                     android:layout_width="125dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_margin="5dp"
                     android:layout_weight="1"
+                    android:textColor="@color/white"
+                    android:backgroundTint="@color/green"
                     android:background="@drawable/circularborder"
                     android:text="Trending" />
 
-                <Button
+                <androidx.appcompat.widget.AppCompatButton
                     android:layout_width="125dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_margin="5dp"
                     android:layout_weight="1"
+                    android:textColor="@color/white"
+                    android:backgroundTint="@color/green"
                     android:background="@drawable/circularborder"
                     android:text="Popular" />
             </LinearLayout>
@@ -107,7 +105,7 @@
             android:id="@+id/scrollView3"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:background="@drawable/bgoranges2"
+            android:background="@color/white"
             android:fillViewport="true"
             android:scrollbarThumbVertical="@android:color/transparent"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -139,29 +137,8 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <View
-            android:id="@+id/line4"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@drawable/line"
-            app:layout_constraintBottom_toTopOf="@id/horizontalScrollView"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/searchView"
-            app:layout_constraintVertical_bias="1.0"/>
 
-        <View
-            android:id="@+id/line5"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@drawable/line"
-            app:layout_constraintBottom_toTopOf="@id/scrollView3"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/horizontalScrollView"
-            app:layout_constraintVertical_bias="1.0"/>
+
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

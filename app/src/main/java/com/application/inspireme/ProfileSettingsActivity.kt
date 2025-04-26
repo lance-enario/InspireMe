@@ -292,6 +292,9 @@ class ProfileSettingsActivity : AppCompatActivity() {
             }
         }
 
+        editor.putLong("lastModified", System.currentTimeMillis())
+        editor.apply()
+
         finish()
     }
 }

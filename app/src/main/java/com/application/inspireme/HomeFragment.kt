@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.application.inspireme.R
 import com.application.inspireme.SettingsPageActivity
+import com.application.inspireme.api.FirebaseManager
 import com.application.inspireme.api.QuoteService
 import com.application.inspireme.model.QuoteResponse
 import retrofit2.Call
@@ -37,33 +38,49 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         savedInstanceState: Bundle?
     ): View? {
 
-
-
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
         quoteTextView = view.findViewById(R.id.quote_text)
         authorTextView = view.findViewById(R.id.quote_author)
 
-        fetchRandomQuote()
+        // disabled for now because it calls the API every time the fragment is created and stores the quote in the database
+        // which is very bad HAHAHAHAAH
+        // fetchRandomQuote()
         
         return view
+    }
+
+     private fun displayQuote(quoteResponse: QuoteResponse) {
+        // Update the UI with the quote data
+        quoteTextView.text = "\"${quoteResponse.quote}\""
+        authorTextView.text = "- ${quoteResponse.author}"
+        
+        // Optional: Add animation for smoother transitions
+        quoteTextView.alpha = 0f
+        authorTextView.alpha = 0f
+        
+        quoteTextView.animate().alpha(1f).setDuration(500).start()
+        authorTextView.animate().alpha(1f).setDuration(500).start()
     }
 
 
     private fun fetchRandomQuote() {
         QuoteService.quoteApi.getRandomQuote().enqueue(object : Callback<QuoteResponse> {
             override fun onResponse(call: Call<QuoteResponse>, response: Response<QuoteResponse>) {
-                if (response.isSuccessful) {
-                    val quoteResponse = response.body()
-                    quoteResponse?.let {
-                        quoteTextView.text = "\"${it.quote}\""
-                        authorTextView.text = "— ${it.author}"
+                if (response.isSuccessful && response.body() != null) {
+                    val quoteResponse = response.body()!!
+                    displayQuote(quoteResponse)
+                    
+                    // Optionally save to Firebase
+                    FirebaseManager.saveApiQuote(quoteResponse) { success, _ ->
+                        if (!success) {
+                            Log.e("HomeFragment", "Failed to save quote to database")
+                        }
                     }
                 } else {
-                    Log.e("QuoteAPI", "Error: ${response.code()}")
-                    Toast.makeText(context, "Failed to load quote: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    // Handle error
                 }
-            }
+            }   
             
             override fun onFailure(call: Call<QuoteResponse>, t: Throwable) {
                 Log.e("QuoteAPI", "Network error: ${t.message}")

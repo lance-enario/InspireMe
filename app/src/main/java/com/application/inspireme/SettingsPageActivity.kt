@@ -3,16 +3,20 @@ package com.application.inspireme
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.ListView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.application.inspireme.helper.SettingItem
 import com.application.inspireme.helper.SettingsAdapter
 import com.google.android.gms.common.util.CollectionUtils.listOf
 import com.google.firebase.auth.FirebaseAuth
+import de.hdodenhof.circleimageview.CircleImageView
+import java.io.File
 
 class SettingsPageActivity : AppCompatActivity() {
     private var previousScreen: String? = null
@@ -50,6 +54,38 @@ class SettingsPageActivity : AppCompatActivity() {
 
         backButton.setOnClickListener {
             onBackPressed()
+        }
+
+        val usernameDisplay = findViewById<TextView>(R.id.username_display)
+        val userEmail = findViewById<TextView>(R.id.user_email)
+        val profilePictureSmall = findViewById<CircleImageView>(R.id.profile_picture_small)
+
+        // Get user information from SharedPreferences
+        val userProfilePrefs = getSharedPreferences("UserProfile", Context.MODE_PRIVATE)
+        val userAuthPrefs = getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
+
+        // Set the username
+        usernameDisplay.text = userProfilePrefs.getString("username", "Username")
+
+        // Set the email if user is logged in
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            userEmail.text = currentUser.email
+        } else {
+            userEmail.text = "Not logged in"
+        }
+
+        // Load profile picture if available
+        val customProfileUri = userProfilePrefs.getString("customProfileUri", null)
+        if (customProfileUri != null) {
+            val imageFile = File(customProfileUri)
+            if (imageFile.exists()) {
+                val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
+                profilePictureSmall.setImageBitmap(bitmap)
+            }
+        } else {
+            // Use default profile image
+            profilePictureSmall.setImageResource(R.drawable.profile)
         }
     }
 
