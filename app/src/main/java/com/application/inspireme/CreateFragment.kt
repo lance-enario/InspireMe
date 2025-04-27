@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
+import android.media.Image
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -56,15 +57,52 @@ class CreateFragment : Fragment(R.layout.fragment_create) {
         val editText = view.findViewById<EditText>(R.id.editText)
         val previewText = view.findViewById<EditText>(R.id.previewText)
         val imagePreview = view.findViewById<ImageView>(R.id.imagePreview)
-        val previewContainer = view.findViewById<ConstraintLayout>(R.id.previewContainer)
+        val previewImage = view.findViewById<ImageView>(R.id.previewImage)
         val pickColorButton = view.findViewById<Button>(R.id.pickColorButton)
         val uploadImageButton = view.findViewById<Button>(R.id.uploadImageButton)
         val fontStyleSpinner = view.findViewById<Spinner>(R.id.fontStyleSpinner)
         val fontSizeSpinner = view.findViewById<Spinner>(R.id.fontSizeSpinner)
         val textAlignmentSpinner = view.findViewById<Spinner>(R.id.textAlignmentSpinner)
-        val textStyleSpinner = view.findViewById<Spinner>(R.id.textStyleSpinner)
+        val textColorPickerButton = view.findViewById<Button>(R.id.textColorPickerButton)
+        val postButton = view.findViewById<Button>(R.id.postButton)
+        val defaultImagePreviewBackground = imagePreview.background
+        val defaultPreviewImageBackground = previewImage.background
 
-        // Sync editText changes with previewText
+        postButton.setOnClickListener {
+            val textContent = editText.text.toString()
+            val textColor = editText.currentTextColor
+            val textSize = editText.textSize
+            val textAlignment = editText.gravity
+            val fontStyle = editText.typeface
+            val backgroundDrawable = previewImage.background
+            val imageDrawable = imagePreview.drawable
+
+            if (textContent.isBlank()) {
+                Toast.makeText(requireContext(), "Text cannot be empty", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Example: Process the post data
+            // Save the post, send it to a server, or navigate to another screen
+            Toast.makeText(requireContext(), "Post created successfully!", Toast.LENGTH_SHORT).show()
+
+            // Optionally, clear the fields after posting
+            editText.text.clear()
+            previewText.text.clear()
+            imagePreview.setImageDrawable(null)
+            previewImage.setImageDrawable(null)
+            imagePreview.background = defaultImagePreviewBackground
+            previewImage.background = defaultPreviewImageBackground
+        }
+
+        textColorPickerButton.setOnClickListener {
+            openColorPicker { color ->
+                editText.setTextColor(color)
+                previewText.setTextColor(color)
+            }
+        }
+
+
         editText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -73,38 +111,18 @@ class CreateFragment : Fragment(R.layout.fragment_create) {
             override fun afterTextChanged(s: Editable?) {}
         })
 
-        // Handle "Pick a Color" button
         pickColorButton.setOnClickListener {
             openColorPicker { color ->
                 selectedColor = color
                 imagePreview.setBackgroundColor(selectedColor)
-                previewContainer.setBackgroundColor(selectedColor)
+                previewImage.setBackgroundColor(selectedColor)
             }
         }
 
-        // Handle "Upload Image" button
         uploadImageButton.setOnClickListener {
             openImagePicker()
         }
 
-        // Text Style Spinner
-        textStyleSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val spannable = SpannableStringBuilder(editText.text)
-                spannable.clearSpans()
-
-                when (position) {
-                    1 -> spannable[0, spannable.length] = StyleSpan(Typeface.BOLD) // Bold
-                    2 -> spannable[0, spannable.length] = StyleSpan(Typeface.ITALIC) // Italic
-                    3 -> spannable[0, spannable.length] = UnderlineSpan() // Underline
-                }
-
-                editText.text = spannable
-                previewText.text = spannable
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
 
         // Font Style Spinner
         fontStyleSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -122,7 +140,6 @@ class CreateFragment : Fragment(R.layout.fragment_create) {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        // Font Size Spinner
         fontSizeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val size = parent?.getItemAtPosition(position).toString().toFloat()
@@ -133,7 +150,6 @@ class CreateFragment : Fragment(R.layout.fragment_create) {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        // Text Alignment Spinner
         textAlignmentSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val gravity = when (position) {

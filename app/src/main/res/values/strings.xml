@@ -24,10 +24,4 @@
         <item>Right</item>
     </string-array>
 
-    <string-array name="text_styles">
-        <item>Normal</item>
-        <item>Bold</item>
-        <item>Italic</item>
-        <item>Underline</item>
-    </string-array>
 </resources>
