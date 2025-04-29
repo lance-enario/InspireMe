@@ -1,214 +1,221 @@
 package com.application.inspireme
 
-import android.content.Intent
-import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.graphics.Typeface
-import android.graphics.drawable.BitmapDrawable
-import android.media.Image
-import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
-import android.text.Editable
-import android.text.SpannableStringBuilder
-import android.text.TextWatcher
-import android.text.style.StyleSpan
-import android.text.style.UnderlineSpan
-import android.view.Gravity
+import android.text.InputFilter
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.*
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.text.set
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.yalantis.ucrop.UCrop
-import yuku.ambilwarna.AmbilWarnaDialog
-import java.io.File
+import com.application.inspireme.api.QuoteService
+import com.google.android.flexbox.FlexboxLayout
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class CreateFragment : Fragment(R.layout.fragment_create) {
 
-    private var selectedColor: Int = Color.WHITE // Default color
-
-    private val pickImageLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == android.app.Activity.RESULT_OK) {
-                val imageUri = result.data?.data
-                if (imageUri != null) {
-                    launchImageCropper(imageUri)
-                } else {
-                    Toast.makeText(requireContext(), "Failed to pick image", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
-    private val cropImageLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == android.app.Activity.RESULT_OK && result.data != null) {
-                val resultUri = UCrop.getOutput(result.data!!)
-                if (resultUri != null) {
-                    updatePreviewImage(resultUri)
-                }
-            }
-        }
+    private lateinit var selectedTagsContainer: FlexboxLayout
+    private lateinit var allTagsContainer: FlexboxLayout
+    private lateinit var addTagsButton: Button
+    private lateinit var postButton: Button
+    private lateinit var quoteEditText: EditText
+    private val selectedTags = mutableSetOf<String>()
+    private val unselectedColor = Color.parseColor("#606060") // Dark gray
+    private val selectedColor = Color.parseColor("#FFFFFF") // White
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val editText = view.findViewById<EditText>(R.id.editText)
-        val previewText = view.findViewById<EditText>(R.id.previewText)
-        val imagePreview = view.findViewById<ImageView>(R.id.imagePreview)
-        val previewImage = view.findViewById<ImageView>(R.id.previewImage)
-        val pickColorButton = view.findViewById<Button>(R.id.pickColorButton)
-        val uploadImageButton = view.findViewById<Button>(R.id.uploadImageButton)
-        val fontStyleSpinner = view.findViewById<Spinner>(R.id.fontStyleSpinner)
-        val fontSizeSpinner = view.findViewById<Spinner>(R.id.fontSizeSpinner)
-        val textAlignmentSpinner = view.findViewById<Spinner>(R.id.textAlignmentSpinner)
-        val textColorPickerButton = view.findViewById<Button>(R.id.textColorPickerButton)
-        val postButton = view.findViewById<Button>(R.id.postButton)
-        val defaultImagePreviewBackground = imagePreview.background
-        val defaultPreviewImageBackground = previewImage.background
+        selectedTagsContainer = view.findViewById(R.id.selected_tags_container)
+        allTagsContainer = view.findViewById(R.id.all_tags_container)
+        addTagsButton = view.findViewById(R.id.add_tags_button)
+        postButton = view.findViewById(R.id.post_button)
+        quoteEditText = view.findViewById(R.id.quoteEditText)
+        quoteEditText.filters = arrayOf(InputFilter.LengthFilter(5000))
+
+        addTagsButton.setOnClickListener {
+            toggleTagVisibility()
+        }
 
         postButton.setOnClickListener {
-            val textContent = editText.text.toString()
-            val textColor = editText.currentTextColor
-            val textSize = editText.textSize
-            val textAlignment = editText.gravity
-            val fontStyle = editText.typeface
-            val backgroundDrawable = previewImage.background
-            val imageDrawable = imagePreview.drawable
-
-            if (textContent.isBlank()) {
-                Toast.makeText(requireContext(), "Text cannot be empty", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            // Example: Process the post data
-            // Save the post, send it to a server, or navigate to another screen
-            Toast.makeText(requireContext(), "Post created successfully!", Toast.LENGTH_SHORT).show()
-
-            // Optionally, clear the fields after posting
-            editText.text.clear()
-            previewText.text.clear()
-            imagePreview.setImageDrawable(null)
-            previewImage.setImageDrawable(null)
-            imagePreview.background = defaultImagePreviewBackground
-            previewImage.background = defaultPreviewImageBackground
+            handlePostButtonClick()
         }
 
-        textColorPickerButton.setOnClickListener {
-            openColorPicker { color ->
-                editText.setTextColor(color)
-                previewText.setTextColor(color)
-            }
+        fetchTags()
+    }
+
+    private fun handlePostButtonClick() {
+        val quoteText = quoteEditText.text.toString().trim()
+
+        if (quoteText.isEmpty()) {
+            Toast.makeText(requireContext(), "Please enter a quote first", Toast.LENGTH_SHORT).show()
+            return
         }
 
+        // Log the data to Logcat
+        android.util.Log.d("CreateFragment", "Quote: $quoteText")
+        android.util.Log.d("CreateFragment", "Tags: ${selectedTags.joinToString()}")
 
-        editText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                previewText.text = Editable.Factory.getInstance().newEditable(s)
-            }
-            override fun afterTextChanged(s: Editable?) {}
-        })
+        // Show confirmation toast
+        Toast.makeText(
+            requireContext(),
+            "Quote created!",
+            Toast.LENGTH_SHORT
+        ).show()
 
-        pickColorButton.setOnClickListener {
-            openColorPicker { color ->
-                selectedColor = color
-                imagePreview.setBackgroundColor(selectedColor)
-                previewImage.setBackgroundColor(selectedColor)
+        // Clear inputs
+        quoteEditText.text.clear()
+        selectedTags.clear()
+        selectedTagsContainer.removeAllViews()
+
+        // Reset tag visuals
+        for (i in 0 until allTagsContainer.childCount) {
+            (allTagsContainer.getChildAt(i) as? TextView)?.let { tagView ->
+                tagView.setTextColor(unselectedColor)
+                tagView.background = ContextCompat.getDrawable(
+                    requireContext(),
+                    R.drawable.tag_background
+                )
             }
         }
 
-        uploadImageButton.setOnClickListener {
-            openImagePicker()
+        // Hide tags container if visible
+        if (allTagsContainer.visibility == View.VISIBLE) {
+            toggleTagVisibility()
         }
+    }
 
+    private fun updateAllTagsSelection() {
+        for (i in 0 until allTagsContainer.childCount) {
+            val view = allTagsContainer.getChildAt(i) as? TextView
+            view?.let {
+                it.setTextColor(unselectedColor)
+                it.background = ContextCompat.getDrawable(
+                    requireContext(),
+                    R.drawable.tag_background
+                )
+            }
+        }
+    }
 
-        // Font Style Spinner
-        fontStyleSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val typeface = when (position) {
-                    1 -> Typeface.SANS_SERIF
-                    2 -> Typeface.SERIF
-                    3 -> Typeface.MONOSPACE
-                    else -> Typeface.DEFAULT
+    private fun toggleTagVisibility() {
+        if (allTagsContainer.visibility == View.VISIBLE) {
+            allTagsContainer.visibility = View.GONE
+            addTagsButton.text = "+ Add Tags"
+        } else {
+            allTagsContainer.visibility = View.VISIBLE
+            addTagsButton.text = "Hide Tags"
+        }
+    }
+
+    private fun fetchTags() {
+        val call = QuoteService.quoteApi.getTags()
+        call.enqueue(object : Callback<List<String>> {
+            override fun onResponse(call: Call<List<String>>, response: Response<List<String>>) {
+                if (response.isSuccessful) {
+                    val tags = response.body()
+                    if (tags != null) {
+                        setupTagViews(tags)
+                    } else {
+                        android.util.Log.d("CreateFragment", "No tags found")
+                    }
+                } else {
+                    android.util.Log.d("CreateFragment", "Failed to fetch tags: ${response.errorBody()?.string()}")
                 }
-                editText.typeface = typeface
-                previewText.typeface = typeface
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-
-        fontSizeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val size = parent?.getItemAtPosition(position).toString().toFloat()
-                editText.textSize = size
-                previewText.textSize = size
+            override fun onFailure(call: Call<List<String>>, t: Throwable) {
+                android.util.Log.d("CreateFragment", "Error: ${t.message}")
             }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-
-        textAlignmentSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val gravity = when (position) {
-                    1 -> Gravity.CENTER
-                    2 -> Gravity.END
-                    else -> Gravity.START
-                }
-                editText.gravity = gravity
-                previewText.gravity = gravity
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-    }
-
-    private fun openColorPicker(onColorPicked: (Int) -> Unit) {
-        val colorPicker = AmbilWarnaDialog(requireContext(), selectedColor, object : AmbilWarnaDialog.OnAmbilWarnaListener {
-            override fun onOk(dialog: AmbilWarnaDialog?, color: Int) {
-                onColorPicked(color)
-            }
-
-            override fun onCancel(dialog: AmbilWarnaDialog?) {}
         })
-        colorPicker.show()
     }
 
-
-    private fun openImagePicker() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        pickImageLauncher.launch(intent)
-    }
-
-    private fun launchImageCropper(sourceUri: Uri) {
-        val destinationUri = Uri.fromFile(File(requireContext().cacheDir, "cropped_image.jpg"))
-        val uCropOptions = UCrop.Options().apply {
-            setCompressionQuality(90)
-            setHideBottomControls(false)
-            setFreeStyleCropEnabled(false) // Lock aspect ratio
-            setShowCropGrid(true)
-            setShowCropFrame(true)
-            setToolbarTitle("Crop Image")
+    private fun setupTagViews(tags: List<String>) {
+        tags.forEach { tag ->
+            // Create tag view for the all tags container
+            val tagView = createTagView(tag, false)
+            tagView.setOnClickListener {
+                toggleTagSelection(tagView, tag)
+            }
+            allTagsContainer.addView(tagView)
         }
-
-        val uCropIntent = UCrop.of(sourceUri, destinationUri)
-            .withAspectRatio(1.91f, 1f) // Lock to 1.91:1 aspect ratio
-            .withOptions(uCropOptions)
-            .getIntent(requireContext())
-
-        cropImageLauncher.launch(uCropIntent)
     }
 
-    private fun updatePreviewImage(uri: Uri) {
-        val imagePreview = view?.findViewById<ImageView>(R.id.imagePreview)
-        val previewContainer = view?.findViewById<ConstraintLayout>(R.id.previewContainer)
-        if (imagePreview != null && previewContainer != null) {
-            val inputStream = requireContext().contentResolver.openInputStream(uri)
-            val bitmap = BitmapFactory.decodeStream(inputStream)
-            imagePreview.setImageBitmap(bitmap)
-            previewContainer.background = BitmapDrawable(resources, bitmap)
+    private fun createTagView(tag: String, isSelected: Boolean): TextView {
+        val tagView = LayoutInflater.from(context).inflate(
+            R.layout.tag_item,
+            allTagsContainer,
+            false
+        ) as TextView
+
+        tagView.text = tag
+        tagView.setBackgroundResource(
+            if (isSelected) R.drawable.tag_background_selected else R.drawable.tag_background
+        )
+        tagView.setTextColor(if (isSelected) selectedColor else unselectedColor)
+
+        val padding = resources.getDimensionPixelSize(R.dimen.tag_padding)
+        tagView.setPadding(padding, padding/2, padding, padding/2)
+
+        val layoutParams = FlexboxLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        val margin = resources.getDimensionPixelSize(R.dimen.tag_margin)
+        layoutParams.setMargins(margin, margin, margin, margin)
+        tagView.layoutParams = layoutParams
+
+        return tagView
+    }
+
+    private fun toggleTagSelection(tagView: TextView, tag: String) {
+        if (selectedTags.contains(tag)) {
+            // Deselect tag
+            selectedTags.remove(tag)
+            tagView.setTextColor(unselectedColor)
+            tagView.background = ContextCompat.getDrawable(requireContext(), R.drawable.tag_background)
+            updateSelectedTagsView()
+        } else {
+            // Select tag
+            selectedTags.add(tag)
+            tagView.setTextColor(selectedColor)
+            tagView.background = ContextCompat.getDrawable(requireContext(), R.drawable.tag_background_selected)
+            updateSelectedTagsView()
+        }
+    }
+
+    private fun updateSelectedTagsView() {
+        selectedTagsContainer.removeAllViews()
+        selectedTags.forEach { tag ->
+            val selectedTagView = createTagView(tag, true)
+            selectedTagView.setOnClickListener {
+                // Remove tag when clicked
+                selectedTags.remove(tag)
+                updateSelectedTagsView()
+                // Also update the corresponding tag in all tags container
+                updateTagInAllTagsContainer(tag, false)
+            }
+            selectedTagsContainer.addView(selectedTagView)
+        }
+    }
+
+    private fun updateTagInAllTagsContainer(tag: String, isSelected: Boolean) {
+        for (i in 0 until allTagsContainer.childCount) {
+            val view = allTagsContainer.getChildAt(i) as? TextView
+            if (view?.text == tag) {
+                view.setTextColor(if (isSelected) selectedColor else unselectedColor)
+                view.background = ContextCompat.getDrawable(
+                    requireContext(),
+                    if (isSelected) R.drawable.tag_background_selected else R.drawable.tag_background
+                )
+                break
+            }
         }
     }
 }
