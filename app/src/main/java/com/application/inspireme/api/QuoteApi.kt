@@ -7,4 +7,7 @@ import retrofit2.http.GET
 interface QuoteApi {
     @GET("quotes/random")
     fun getRandomQuote(): Call<QuoteResponse>
+
+    @GET("tags")
+    fun getTags(): Call<List<String>>
 }

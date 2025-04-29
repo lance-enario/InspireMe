@@ -56,8 +56,8 @@ dependencies {
     implementation("com.google.code.gson:gson:2.9.0")
     implementation("com.github.yalantis:ucrop:2.2.8")
 
-    // Color selection
-    implementation("com.github.yukuku:ambilwarna:2.0.1")
+    //Flexbox
+    implementation("com.google.android.flexbox:flexbox:3.0.0")
 
 
     // CircleImageView (this is used in the profile and profile settings)
