@@ -12,8 +12,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.application.inspireme.api.FirebaseManager
 import com.application.inspireme.api.QuoteService
+import com.application.inspireme.model.Quote
 import com.google.android.flexbox.FlexboxLayout
+import android.content.Context
+import com.application.inspireme.data.UserProfileCache
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -26,8 +30,8 @@ class CreateFragment : Fragment(R.layout.fragment_create) {
     private lateinit var postButton: Button
     private lateinit var quoteEditText: EditText
     private val selectedTags = mutableSetOf<String>()
-    private val unselectedColor = Color.parseColor("#606060") // Dark gray
-    private val selectedColor = Color.parseColor("#FFFFFF") // White
+    private val unselectedColor = Color.parseColor("#606060")
+    private val selectedColor = Color.parseColor("#FFFFFF")
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -51,45 +55,67 @@ class CreateFragment : Fragment(R.layout.fragment_create) {
     }
 
     private fun handlePostButtonClick() {
-        val quoteText = quoteEditText.text.toString().trim()
+    val quoteText = quoteEditText.text.toString().trim()
 
-        if (quoteText.isEmpty()) {
-            Toast.makeText(requireContext(), "Please enter a quote first", Toast.LENGTH_SHORT).show()
-            return
-        }
+    if (quoteText.isEmpty()) {
+        Toast.makeText(requireContext(), "Please enter a quote first", Toast.LENGTH_SHORT).show()
+        return
+    }
 
-        // Log the data to Logcat
-        android.util.Log.d("CreateFragment", "Quote: $quoteText")
-        android.util.Log.d("CreateFragment", "Tags: ${selectedTags.joinToString()}")
+    val userAuthPrefs = requireContext().getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
+    val userId = userAuthPrefs.getString("userId", null)
+    
+    if (userId == null) {
+        Toast.makeText(requireContext(), "You must be logged in to post quotes", Toast.LENGTH_SHORT).show()
+        return
+    }
 
-        // Show confirmation toast
-        Toast.makeText(
-            requireContext(),
-            "Quote created!",
-            Toast.LENGTH_SHORT
-        ).show()
 
-        // Clear inputs
-        quoteEditText.text.clear()
-        selectedTags.clear()
-        selectedTagsContainer.removeAllViews()
+    val username = UserProfileCache.username
+    
+    val quote = Quote(
+        id = "", 
+        quote = quoteText,
+        author = username,
+        authorId = userId,
+        tags = selectedTags.toList(),
+        timestamp = System.currentTimeMillis()
+    )
 
-        // Reset tag visuals
-        for (i in 0 until allTagsContainer.childCount) {
-            (allTagsContainer.getChildAt(i) as? TextView)?.let { tagView ->
-                tagView.setTextColor(unselectedColor)
-                tagView.background = ContextCompat.getDrawable(
-                    requireContext(),
-                    R.drawable.tag_background
-                )
+    FirebaseManager.saveQuote(quote) { success, quoteId ->
+        if (success && quoteId != null) {
+            val userQuote = quote.copy(id = quoteId)
+            
+            FirebaseManager.saveUserQuote(userId, userQuote) { userSuccess, _ ->
+                if (userSuccess) {
+                    Toast.makeText(requireContext(), "Quote posted successfully!", Toast.LENGTH_SHORT).show()
+
+                    quoteEditText.text.clear()
+                    selectedTags.clear()
+                    selectedTagsContainer.removeAllViews()
+
+                    for (i in 0 until allTagsContainer.childCount) {
+                        (allTagsContainer.getChildAt(i) as? TextView)?.let { tagView ->
+                            tagView.setTextColor(unselectedColor)
+                            tagView.background = ContextCompat.getDrawable(
+                                requireContext(),
+                                R.drawable.tag_background
+                            )
+                        }
+                    }
+                    
+                    if (allTagsContainer.visibility == View.VISIBLE) {
+                        toggleTagVisibility()
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "Failed to associate quote with your profile", Toast.LENGTH_SHORT).show()
+                }
             }
-        }
-
-        // Hide tags container if visible
-        if (allTagsContainer.visibility == View.VISIBLE) {
-            toggleTagVisibility()
+        } else {
+            Toast.makeText(requireContext(), "Failed to post quote", Toast.LENGTH_SHORT).show()
         }
     }
+}
 
     private fun updateAllTagsSelection() {
         for (i in 0 until allTagsContainer.childCount) {

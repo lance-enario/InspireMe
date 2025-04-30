@@ -40,11 +40,11 @@ class NavigationBarActivity : AppCompatActivity() {
                     true
                 }
                 R.id.CategoryButton -> {
-                    // loadFragment(CategoryFragment())
+                    loadFragment(CategoryFragment())
                     true
                 }
                 R.id.Notifbutton -> {
-                    // loadFragment(NotificationFragment())
+                    loadFragment(NotificationFragment())
                     true
                 }
                 R.id.Profilebutton -> {
@@ -57,13 +57,11 @@ class NavigationBarActivity : AppCompatActivity() {
 
         val fabCreate = findViewById<FloatingActionButton>(R.id.fab)
         fabCreate.setOnClickListener {
-            // Disable selection/highlight on bottom nav items
             bottomNavigationView.menu.setGroupCheckable(0, false, true)
             for (i in 0 until bottomNavigationView.menu.size()) {
                 bottomNavigationView.menu.getItem(i).isChecked = false
             }
 
-            // Remove focus and load CreateFragment
             bottomNavigationView.clearFocus()
             loadFragment(CreateFragment(), addToBackStack = true)
         }

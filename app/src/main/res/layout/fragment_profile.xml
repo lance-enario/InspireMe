@@ -56,7 +56,6 @@
             android:textSize="14sp"
             app:layout_constraintTop_toBottomOf="@id/username_text" />
 
-        <!-- Edit Profile Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/editProfileButton"
             android:layout_width="match_parent"
@@ -82,7 +81,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/banner_image"/>
 
-        <!-- Statistics Section -->
         <LinearLayout
             android:id="@+id/stats_section"
             android:layout_width="match_parent"
@@ -93,7 +91,6 @@
             android:padding="16dp"
             app:layout_constraintTop_toBottomOf="@id/editProfileButton">
 
-            <!-- Favorites -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -118,13 +115,11 @@
                     android:textSize="14sp" />
             </LinearLayout>
 
-            <!-- Separator -->
             <View
                 android:layout_width="1dp"
                 android:layout_height="match_parent"
                 android:background="#E0E0E0" />
 
-            <!-- Posts -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -181,6 +176,26 @@
             </LinearLayout>
         </LinearLayout>
 
+
+        <!-- Add this after your profile section but before the recyclerView -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/profile_tabs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/stats_section">
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="My Quotes" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Liked Quotes" />
+        </com.google.android.material.tabs.TabLayout>
+
+
         <!-- Recent Activity Section -->
         <TextView
             android:id="@+id/recent_activity_label"
@@ -193,7 +208,7 @@
             android:textColor="@color/black"
             android:textSize="18sp"
             android:textStyle="bold"
-            app:layout_constraintTop_toBottomOf="@id/stats_section" />
+            app:layout_constraintTop_toBottomOf="@id/profile_tabs" />
 
         <!-- Activity Cards Section -->
         <androidx.recyclerview.widget.RecyclerView

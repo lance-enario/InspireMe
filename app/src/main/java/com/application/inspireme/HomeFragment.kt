@@ -43,49 +43,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         quoteTextView = view.findViewById(R.id.quote_text)
         authorTextView = view.findViewById(R.id.quote_author)
 
-        // disabled for now because it calls the API every time the fragment is created and stores the quote in the database
-        // which is very bad HAHAHAHAAH
-        // fetchRandomQuote()
-        
         return view
     }
 
-     private fun displayQuote(quoteResponse: QuoteResponse) {
-        // Update the UI with the quote data
-        quoteTextView.text = "\"${quoteResponse.quote}\""
-        authorTextView.text = "- ${quoteResponse.author}"
-        
-        // Optional: Add animation for smoother transitions
-        quoteTextView.alpha = 0f
-        authorTextView.alpha = 0f
-        
-        quoteTextView.animate().alpha(1f).setDuration(500).start()
-        authorTextView.animate().alpha(1f).setDuration(500).start()
-    }
 
-
-    private fun fetchRandomQuote() {
-        QuoteService.quoteApi.getRandomQuote().enqueue(object : Callback<QuoteResponse> {
-            override fun onResponse(call: Call<QuoteResponse>, response: Response<QuoteResponse>) {
-                if (response.isSuccessful && response.body() != null) {
-                    val quoteResponse = response.body()!!
-                    displayQuote(quoteResponse)
-                    
-                    // Optionally save to Firebase
-                    FirebaseManager.saveApiQuote(quoteResponse) { success, _ ->
-                        if (!success) {
-                            Log.e("HomeFragment", "Failed to save quote to database")
-                        }
-                    }
-                } else {
-                    // Handle error
-                }
-            }   
-            
-            override fun onFailure(call: Call<QuoteResponse>, t: Throwable) {
-                Log.e("QuoteAPI", "Network error: ${t.message}")
-                Toast.makeText(context, "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
 }
