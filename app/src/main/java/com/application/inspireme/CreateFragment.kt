@@ -141,25 +141,15 @@ class CreateFragment : Fragment(R.layout.fragment_create) {
     }
 
     private fun fetchTags() {
-        val call = QuoteService.quoteApi.getTags()
-        call.enqueue(object : Callback<List<String>> {
-            override fun onResponse(call: Call<List<String>>, response: Response<List<String>>) {
-                if (response.isSuccessful) {
-                    val tags = response.body()
-                    if (tags != null) {
-                        setupTagViews(tags)
-                    } else {
-                        android.util.Log.d("CreateFragment", "No tags found")
-                    }
-                } else {
-                    android.util.Log.d("CreateFragment", "Failed to fetch tags: ${response.errorBody()?.string()}")
-                }
-            }
-
-            override fun onFailure(call: Call<List<String>>, t: Throwable) {
-                android.util.Log.d("CreateFragment", "Error: ${t.message}")
-            }
-        })
+        val tags = listOf(
+            "motivation", "inspiration", "life", "wisdom", "love",
+            "success", "leadership", "happiness", "change", "perseverance",
+            "mindfulness", "growth", "courage", "gratitude", "resilience",
+            "friendship", "creativity", "humility", "forgiveness", "patience",
+            "integrity", "self-reflection", "empathy", "purpose", "justice",
+            "harmony", "knowledge", "hope", "anger", "fear", "general"
+        )
+        setupTagViews(tags)
     }
 
     private fun setupTagViews(tags: List<String>) {
