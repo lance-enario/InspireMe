@@ -1,16 +1,16 @@
 package com.application.inspireme.model
 
 data class Quote(
-    var id: String = "",
+    val id: String = "",
+    val userId: String = "",
     val quote: String = "",
     val author: String = "",
-    val authorId: String = "", // Add this field
-    val length: Int = 0,
     val tags: List<String> = emptyList(),
-    val timestamp: Long = System.currentTimeMillis(),
+    val timestamp: Long = 0,
+    val isDiscovery: Boolean = false  // Add this flag
 ) {
-    // Empty constructor for Firebase
-    constructor() : this("", "", "", "", 0, emptyList())
+    // Empty constructor required for Firebase
+    constructor() : this("", "", "", "", emptyList(), 0)
 }
 
 // Keep this class for external API responses

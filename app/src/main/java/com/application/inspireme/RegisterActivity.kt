@@ -106,11 +106,12 @@ class RegisterActivity : Activity() {
                             val usersRef = database.getReference("users")
                             
                             val user = User(
-                                email = email.lowercase(),
-                                username = email.substringBefore("@"),
-                                bio = "No bio available",
-                                createdAt = System.currentTimeMillis()
-                            )
+                            id = userId,  
+                            email = email.lowercase(),
+                            username = email.substringBefore("@"),
+                            bio = "No bio available",
+                            createdAt = System.currentTimeMillis()
+                        )
                             
                             usersRef.child(userId).setValue(user)
                                 .addOnCompleteListener { dbTask ->

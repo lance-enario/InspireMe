@@ -69,12 +69,10 @@ object FirebaseManager {
     }
 
     fun saveApiQuote(quoteResponse: QuoteResponse, onComplete: (Boolean, String?) -> Unit) {
-        // Convert API QuoteResponse to our Quote model
         val quote = Quote(
             id = "api_${quoteResponse.id}",
             quote = quoteResponse.quote,
             author = quoteResponse.author,
-            length = quoteResponse.length,
             tags = quoteResponse.tags
         )
         
@@ -189,7 +187,7 @@ object FirebaseManager {
                 if (!task.isSuccessful) {
                     Log.e("FirebaseManager", "Error liking quote: ${task.exception?.message}")
                 }
-                val authorId = quote.authorId
+                val authorId = quote.userId
                 if (authorId.isNotEmpty() && authorId != userId) {
                     // Get username first, then send notification
                     getUserData(userId, { user ->
@@ -372,8 +370,6 @@ object FirebaseManager {
                 }
             })
     }
-
-    // Get all users that a user is following
     fun getFollowing(userId: String, onSuccess: (List<String>) -> Unit, onFailure: (String) -> Unit) {
         followingRef.child(userId)
             .addListenerForSingleValueEvent(object : ValueEventListener {
@@ -553,4 +549,34 @@ object FirebaseManager {
                 }
             })
     }
+
+    fun getAllUsers(onComplete: (List<User>) -> Unit) {
+        usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val users = mutableListOf<User>()
+                
+                for (userSnapshot in snapshot.children) {
+                    val userId = userSnapshot.key ?: continue
+                    val username = userSnapshot.child("username").getValue(String::class.java) ?: continue
+                    val bio = userSnapshot.child("bio").getValue(String::class.java) ?: ""
+                    
+                    users.add(User(id = userId, username = username, bio = bio))
+                }
+                
+                onComplete(users)
+            }
+            
+            override fun onCancelled(error: DatabaseError) {
+                onComplete(emptyList())
+            }
+        })
+    }
+
+
+
+
+
+
+
+
 }

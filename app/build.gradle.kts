@@ -71,6 +71,8 @@ dependencies {
     //Flexbox
     implementation("com.google.android.flexbox:flexbox:3.0.0")
 
+    // Layout for HomeFragment to refresh feed
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     // CircleImageView (this is used in the profile and profile settings)
     implementation(libs.de.hdodenhof.circleimageview)

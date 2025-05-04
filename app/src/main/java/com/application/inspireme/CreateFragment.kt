@@ -77,9 +77,10 @@ class CreateFragment : Fragment(R.layout.fragment_create) {
         id = "", 
         quote = quoteText,
         author = username,
-        authorId = userId,
+        userId = userId,
         tags = selectedTags.toList(),
-        timestamp = System.currentTimeMillis()
+        timestamp = System.currentTimeMillis(),
+        isDiscovery = false
     )
 
     FirebaseManager.saveQuote(quote) { success, quoteId ->
