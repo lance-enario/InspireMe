@@ -22,9 +22,9 @@ class LoginActivity : Activity() {
     private var progressBar: ProgressBar? = null
     private val TAG = "LoginActivity"
     private lateinit var auth: FirebaseAuth
-    
+
     private fun startMainActivity() {
-        val intent = Intent(this, GenerateQuoteActivity::class.java)
+        val intent = Intent(this, NavigationBarActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
