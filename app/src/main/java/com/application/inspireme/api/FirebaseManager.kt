@@ -83,7 +83,7 @@ object FirebaseManager {
                 onComplete(task.isSuccessful, if (task.isSuccessful) quote.id else null)
             }
     }
-    
+
     fun getAllQuotes(onSuccess: (List<Quote>) -> Unit, onFailure: (String) -> Unit) {
         quotesRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -96,11 +96,24 @@ object FirebaseManager {
                 }
                 onSuccess(quotesList)
             }
-            
+
             override fun onCancelled(error: DatabaseError) {
                 onFailure(error.message)
             }
         })
+    }
+
+    fun getRandomQuoteBatch(onSuccess: (List<Quote>) -> Unit, onFailure: (String) -> Unit) {
+        quotesRef.limitToFirst(500).get().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val quotes = task.result.children.mapNotNull {
+                    it.getValue(Quote::class.java)
+                }
+                onSuccess(quotes)
+            } else {
+                onFailure(task.exception?.message ?: "Unknown error")
+            }
+        }
     }
     
     fun getQuoteById(quoteId: String, onSuccess: (Quote) -> Unit, onFailure: (String) -> Unit) {

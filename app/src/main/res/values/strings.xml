@@ -2,5 +2,12 @@
     <string name="app_name">InspireMe</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-
+    <string name="add_widget">Add widget</string>
+    <string name="app_widget_description">Quotes Widget</string>
+    <string name="appwidget_text">Loading inspiration...</string>
+    <string name="no_quotes_available">No quotes available. Tap to refresh.</string>
+    <string name="unknown_author">Unknown Author</string>
+    <string name="default_creator_name">Inspire Me</string>
+    <string name="profile_image">Profile image</string>
+    <string name="loading_quotes">Loading Quotes...</string>
 </resources>
