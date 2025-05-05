@@ -32,7 +32,7 @@
             android:maxLines="1"
             android:ellipsize="end" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/follow_button"
             android:layout_width="match_parent"
             android:layout_height="36dp"

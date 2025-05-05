@@ -572,11 +572,23 @@ object FirebaseManager {
         })
     }
 
-
-
-
-
-
-
-
+    /**
+     * Deletes a quote from the main quotes collection and user's quotes
+     */
+    fun deleteQuote(quoteId: String, userId: String, onComplete: (Boolean) -> Unit) {
+        // Create a batch operation to delete from multiple locations
+        val updates = HashMap<String, Any?>()
+        
+        // Delete from main quotes collection
+        updates["/quotes/$quoteId"] = null
+        
+        // Delete from user quotes
+        updates["/userQuotes/$userId/$quoteId"] = null
+        
+        // Execute all deletions as a single operation
+        database.reference.updateChildren(updates)
+            .addOnCompleteListener { task ->
+                onComplete(task.isSuccessful)
+            }
+    }
 }

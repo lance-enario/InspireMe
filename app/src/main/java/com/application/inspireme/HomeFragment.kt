@@ -1,6 +1,8 @@
 package com.application.inspireme
 
 import android.content.Intent
+import android.content.res.ColorStateList
+import androidx.core.content.ContextCompat
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,6 +12,7 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -45,6 +48,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             startActivity(intent)
         }
 
+        // Setup search functionality
+        val searchView = view.findViewById<SearchView>(R.id.searchView)
+        setupSearchView(searchView)
+
         quotesRecyclerView = view.findViewById(R.id.quotes_recycler_view)
         suggestedUsersRecyclerView = view.findViewById(R.id.suggested_users_recycler_view)
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout)
@@ -63,10 +70,14 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         )
         suggestedUsersRecyclerView.adapter = suggestedUsersAdapter
         
+        // Set up filter buttons
+        setupFilterButtons(view)
+        
         swipeRefreshLayout.setOnRefreshListener {
             refreshContent()
         }
-        
+
+        currentFilter = QuoteFilter.FOR_YOU
         refreshContent()
     }
 
@@ -77,30 +88,100 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     ): View? {
         return inflater.inflate(R.layout.fragment_home, container, false)
     }
-    
+
+    private enum class QuoteFilter {
+        FOR_YOU, RECENT, TRENDING, POPULAR
+    }
+
+    private var currentFilter = QuoteFilter.FOR_YOU
+    private var filterButtons = mutableListOf<Button>()
+
+    private fun setupFilterButtons(view: View) {
+        // Find all filter buttons in the horizontal scroll view
+        val buttonForYou = view.findViewById<Button>(R.id.btn_for_you)
+        val buttonRecent = view.findViewById<Button>(R.id.btn_recent)
+        val buttonTrending = view.findViewById<Button>(R.id.btn_trending)
+        val buttonPopular = view.findViewById<Button>(R.id.btn_popular)
+        
+        filterButtons = mutableListOf(buttonForYou, buttonRecent, buttonTrending, buttonPopular)
+        
+        // Set up click listeners
+        buttonForYou.setOnClickListener {
+            selectFilter(QuoteFilter.FOR_YOU)
+        }
+        
+        buttonRecent.setOnClickListener {
+            selectFilter(QuoteFilter.RECENT)
+        }
+        
+        buttonTrending.setOnClickListener {
+            selectFilter(QuoteFilter.TRENDING)
+        }
+        
+        buttonPopular.setOnClickListener {
+            selectFilter(QuoteFilter.POPULAR)
+        }
+        
+        // Highlight the default selected button
+        updateButtonStyles()
+    }
+
+    private fun selectFilter(filter: QuoteFilter) {
+        if (filter != currentFilter) {
+            currentFilter = filter
+            updateButtonStyles()
+            loadFilteredQuotes()
+        }
+    }
+
+    private fun updateButtonStyles() {
+        val selectedColor = ContextCompat.getColor(requireContext(), R.color.green)
+        val unselectedColor = ContextCompat.getColor(requireContext(), R.color.light_gray)
+        
+        filterButtons.forEachIndexed { index, button ->
+            val isSelected = when(index) {
+                0 -> currentFilter == QuoteFilter.FOR_YOU
+                1 -> currentFilter == QuoteFilter.RECENT
+                2 -> currentFilter == QuoteFilter.TRENDING
+                3 -> currentFilter == QuoteFilter.POPULAR
+                else -> false
+            }
+            
+            button.backgroundTintList = ColorStateList.valueOf(
+                if (isSelected) selectedColor else unselectedColor
+            )
+        }
+    }
+
+    private fun loadFilteredQuotes() {
+        when (currentFilter) {
+            QuoteFilter.FOR_YOU -> loadQuotes()
+            QuoteFilter.RECENT -> loadRecentQuotes()
+            QuoteFilter.TRENDING -> loadTrendingQuotes()
+            QuoteFilter.POPULAR -> loadPopularQuotes()
+        }
+    }
+
     private fun refreshContent() {
-        loadQuotes()
+        loadFilteredQuotes()
         loadSuggestedUsers()
     }
-    
+
     private fun loadQuotes() {
         if (currentUserId == null) {
-            // If not logged in, just show random quotes
             loadRandomQuotes()
             return
         }
 
-        // First show loading state
         activity?.runOnUiThread {
             swipeRefreshLayout.isRefreshing = true
         }
 
-        // We'll create a mix of followed users' quotes and random quotes
         FirebaseManager.getFollowing(
             currentUserId,
             onSuccess = { followingIds ->
                 if (followingIds.isEmpty()) {
-                    // If not following anyone, just load random quotes
+                    // If not following anyone, load random quotes
                     loadRandomQuotes()
                 } else {
                     // Load both followed users' quotes and some random quotes
@@ -113,7 +194,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                             followedQuotes.addAll(userQuotes)
                             
                             if (pendingUsers.decrementAndGet() == 0) {
-                                // Now that we have followed quotes, get some random ones too
                                 FirebaseManager.getRandomQuoteBatch(
                                     onSuccess = { randomQuotes ->
                                         val mixedQuotes = createMixedFeed(followedQuotes, randomQuotes.take(10))
@@ -133,7 +213,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 }
             },
             onFailure = { error ->
-                // Handle error - fall back to random quotes
+                // fall back to random quotes
                 activity?.runOnUiThread {
                     Toast.makeText(context, "Failed to load following data: $error", Toast.LENGTH_SHORT).show()
                     loadRandomQuotes()
@@ -141,6 +221,82 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         )
     }
+
+    private fun loadRecentQuotes() {
+        activity?.runOnUiThread {
+            swipeRefreshLayout.isRefreshing = true
+        }
+        
+        FirebaseManager.getAllQuotes(
+            onSuccess = { allQuotes ->
+                // Sort by timestamp (newest first)
+                val recentQuotes = allQuotes
+                    .sortedByDescending { it.timestamp }
+                    .take(20)
+                updateQuotesFeed(recentQuotes)
+            },
+            onFailure = { error ->
+                activity?.runOnUiThread {
+                    Toast.makeText(context, "Error loading recent quotes: $error", Toast.LENGTH_SHORT).show()
+                    swipeRefreshLayout.isRefreshing = false
+                }
+            }
+        )
+    }
+
+    private fun loadTrendingQuotes() {
+        activity?.runOnUiThread {
+            swipeRefreshLayout.isRefreshing = true
+        }
+        
+        // Trending based on quotes that have been liked recently
+        FirebaseManager.getAllQuotes(
+            onSuccess = { allQuotes ->
+                // Get quotes from last 7 days with tags that are trending
+                val sevenDaysAgo = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000)
+                val trendingQuotes = allQuotes
+                    .filter { it.timestamp > sevenDaysAgo }
+                    .sortedByDescending { 
+                        // Priority to quotes with popular tags
+                        if (it.tags.any { tag -> tag in trendingTags }) 2 else 1
+                    }
+                    .take(20)
+                updateQuotesFeed(trendingQuotes)
+            },
+            onFailure = { error ->
+                activity?.runOnUiThread {
+                    Toast.makeText(context, "Error loading trending quotes: $error", Toast.LENGTH_SHORT).show()
+                    swipeRefreshLayout.isRefreshing = false
+                }
+            }
+        )
+    }
+
+    private fun loadPopularQuotes() {
+        activity?.runOnUiThread {
+            swipeRefreshLayout.isRefreshing = true
+        }
+        
+        FirebaseManager.getRandomQuoteBatch(
+            onSuccess = { fetchedQuotes ->
+                val popularQuotes = fetchedQuotes
+                    .shuffled()
+                    .take(20)
+                updateQuotesFeed(popularQuotes)
+            },
+            onFailure = { error ->
+                activity?.runOnUiThread {
+                    Toast.makeText(context, "Error loading popular quotes: $error", Toast.LENGTH_SHORT).show()
+                    swipeRefreshLayout.isRefreshing = false
+                }
+            }
+        )
+    }
+
+    // A sample of trending tags - in a real app, this would be dynamically determined
+    private val trendingTags = listOf(
+        "motivation", "success", "mindfulness", "happiness", "inspiration"
+    )
 
     /**
     * Creates a mixed feed of followed users' quotes and random discovery quotes
@@ -155,12 +311,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         // Prioritize recent quotes from followed users
         val sortedFollowed = followedQuotes.sortedByDescending { it.timestamp }
         
-        // If we have many followed quotes, use top 70% followed and 30% random
+        // use top 70% followed and 30% random
         if (sortedFollowed.size > 10) {
             val followedCount = (sortedFollowed.size * 0.7).toInt().coerceAtLeast(1)
             result.addAll(sortedFollowed.take(followedCount))
             
-            // Add some random quotes, labeled as "discovery"
+            // Add random quotes, labeled as "discovery"
             result.addAll(uniqueRandomQuotes.shuffled().take(5).map { 
                 it.copy(isDiscovery = true)  // Add a flag to mark as discovery content
             })
@@ -299,5 +455,82 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 }
             }
         }
+    }
+
+    private fun setupSearchView(searchView: SearchView) {
+        // Set hint text
+        searchView.queryHint = "Search quotes..."
+        
+        // Set search view listeners
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+                performSearch(query)
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                // Only search if there are at least 3 characters
+                if (newText.length >= 3) {
+                    performSearch(newText)
+                } else if (newText.isEmpty()) {
+                    // If search text is cleared, reload current filter
+                    loadFilteredQuotes()
+                }
+                return true
+            }
+        })
+        
+        // When search view is closed, reload the current filter
+        searchView.setOnCloseListener {
+            loadFilteredQuotes()
+            false
+        }
+    }
+
+    private fun performSearch(query: String) {
+        if (query.isEmpty()) {
+            loadFilteredQuotes()
+            return
+        }
+        
+        activity?.runOnUiThread {
+            swipeRefreshLayout.isRefreshing = true
+        }
+        
+        // Normalize search terms
+        val searchTerms = query.lowercase().trim().split(" ")
+        
+        // Get all quotes and filter locally
+        FirebaseManager.getAllQuotes(
+            onSuccess = { allQuotes ->
+                val filteredQuotes = allQuotes.filter { quote ->
+                    // Check if any search term is contained in quote text
+                    val quoteText = quote.quote.lowercase()
+                    val authorName = quote.author.lowercase()
+                    val tagsList = quote.tags.joinToString(" ").lowercase()
+                    
+                    searchTerms.any { term ->
+                        quoteText.contains(term) || 
+                        authorName.contains(term) || 
+                        tagsList.contains(term)
+                    }
+                }
+                
+                updateQuotesFeed(filteredQuotes)
+                
+                // Show message if no results found
+                activity?.runOnUiThread {
+                    if (filteredQuotes.isEmpty()) {
+                        Toast.makeText(context, "No quotes found matching \"$query\"", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            },
+            onFailure = { error ->
+                activity?.runOnUiThread {
+                    Toast.makeText(context, "Error searching quotes: $error", Toast.LENGTH_SHORT).show()
+                    swipeRefreshLayout.isRefreshing = false
+                }
+            }
+        )
     }
 }

@@ -27,6 +27,7 @@
             android:layout_width="35dp"
             android:layout_height="35dp"
             android:background="@drawable/settings"
+            android:backgroundTint="@color/green"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/searchView"
@@ -51,6 +52,7 @@
                 android:orientation="horizontal">
 
                 <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btn_for_you"
                     android:layout_width="125dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -62,6 +64,7 @@
                     android:text="For You" />
 
                 <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btn_recent"
                     android:layout_width="125dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -73,6 +76,7 @@
                     android:text="Recent" />
 
                 <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btn_trending"
                     android:layout_width="125dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -84,6 +88,7 @@
                     android:text="Trending" />
 
                 <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btn_popular"
                     android:layout_width="125dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -143,6 +148,7 @@
                         android:id="@+id/quotes_recycler_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="48dp"
                         android:padding="8dp"
                         android:clipToPadding="false"/>
                 </LinearLayout>
