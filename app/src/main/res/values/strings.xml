@@ -10,4 +10,8 @@
     <string name="default_creator_name">Inspire Me</string>
     <string name="profile_image">Profile image</string>
     <string name="loading_quotes">Loading Quotes...</string>
+    <string name="image_picker_item">Profile image option</string>
+    <string name="banner_image_option">Banner image option</string>
+    <string name="profile_image_option">Profile image option</string>
+
 </resources>

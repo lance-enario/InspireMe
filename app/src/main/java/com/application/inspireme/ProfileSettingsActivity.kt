@@ -1,101 +1,33 @@
 package com.application.inspireme
 
-import android.Manifest
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
-import android.os.Build
+import android.graphics.Rect
 import android.os.Bundle
-import android.provider.MediaStore
-import android.widget.Button
+import android.util.Log
+import android.view.View
 import android.widget.EditText
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import com.yalantis.ucrop.UCrop
-import com.yalantis.ucrop.UCropActivity
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.util.UUID
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.application.inspireme.data.UserProfileCache
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.database.FirebaseDatabase
 
 class ProfileSettingsActivity : AppCompatActivity() {
-    private val REQUEST_BANNER_IMAGE = 0
-    private val REQUEST_PROFILE_IMAGE = 1
-
-    private var currentImageRequest = REQUEST_BANNER_IMAGE
-
-    private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                openImagePicker()
-            } else {
-                Toast.makeText(
-                    this,
-                    "Permission denied. You won't be able to select custom images.",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-
-    private val pickImageLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK) {
-                val selectedImageUri = result.data?.data
-                if (selectedImageUri != null) {
-                    // Instead of directly saving, launch the cropping activity
-                    launchImageCropper(selectedImageUri)
-                }
-            }
-        }
-
-    private val cropImageLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK && result.data != null) {
-                val resultUri = UCrop.getOutput(result.data!!)
-                if (resultUri != null) {
-                    // Get the absolute path from the URI
-                    val filePath = resultUri.path
-
-                    when (currentImageRequest) {
-                        REQUEST_BANNER_IMAGE -> {
-                            customBannerUri = filePath
-                            loadImageFromUri(filePath, bannerImageView)
-                        }
-                        REQUEST_PROFILE_IMAGE -> {
-                            customProfileUri = filePath
-                            loadImageFromUri(filePath, profilePic)
-                        }
-                    }
-                }
-            } else if (result.resultCode == UCrop.RESULT_ERROR) {
-                val cropError = UCrop.getError(result.data!!)
-                Toast.makeText(this, "Image cropping failed: ${cropError?.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
-
     private lateinit var bannerImageView: ImageView
     private lateinit var profilePic: ImageView
     private lateinit var usernameEditText: EditText
     private lateinit var bioEditText: EditText
     private lateinit var sharedPreferences: SharedPreferences
 
-    private var selectedBannerResId = R.drawable.banner3
-    private var selectedProfileResId = R.drawable.profile
-
-    private var customBannerUri: String? = null
-    private var customProfileUri: String? = null
+    private var selectedBannerId: String = "banner3"
+    private var selectedProfileId: String = "profile1"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -106,194 +38,167 @@ class ProfileSettingsActivity : AppCompatActivity() {
         profilePic = findViewById(R.id.ProfilePic)
         usernameEditText = findViewById(R.id.Username)
         bioEditText = findViewById(R.id.Bio)
-        val saveButton: MaterialButton = findViewById(R.id.Save)
-        val cancelButton: MaterialButton = findViewById(R.id.Cancel)
 
-        findViewById<ImageView>(R.id.back_icon_left).setOnClickListener {
-            onBackPressed()
-        }
+        findViewById<ImageView>(R.id.back_icon_left).setOnClickListener { onBackPressed() }
+        findViewById<MaterialButton>(R.id.Save).setOnClickListener { saveData() }
+        findViewById<MaterialButton>(R.id.Cancel).setOnClickListener { finish() }
+
+        bannerImageView.setOnClickListener { showImageSelectionDialog(true) }
+        profilePic.setOnClickListener { showImageSelectionDialog(false) }
 
         loadSavedData()
-
-        bannerImageView.setOnClickListener {
-            currentImageRequest = REQUEST_BANNER_IMAGE
-            checkAndRequestPermission()
-        }
-
-        profilePic.setOnClickListener {
-            currentImageRequest = REQUEST_PROFILE_IMAGE
-            checkAndRequestPermission()
-        }
-
-        saveButton.setOnClickListener { saveData() }
-        cancelButton.setOnClickListener { finish() }
-
-        // Add this to your onCreate method
-        findViewById<ImageButton>(R.id.editBannerButton).setOnClickListener {
-            if (customBannerUri != null) {
-                currentImageRequest = REQUEST_BANNER_IMAGE
-                reCropExistingImage(customBannerUri!!)
-            } else {
-                Toast.makeText(this, "Please select an image first", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        findViewById<ImageButton>(R.id.editProfileButton).setOnClickListener {
-            if (customProfileUri != null) {
-                currentImageRequest = REQUEST_PROFILE_IMAGE
-                reCropExistingImage(customProfileUri!!)
-            } else {
-                Toast.makeText(this, "Please select an image first", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
-    private fun checkAndRequestPermission() {
-        val permission = when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> Manifest.permission.READ_MEDIA_IMAGES
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> Manifest.permission.READ_EXTERNAL_STORAGE
-            else -> Manifest.permission.WRITE_EXTERNAL_STORAGE
+
+    private fun showAnimalSelectionDialog() {
+        val animals = listOf(
+            "Capybara" to "capybara",
+            "Cat" to "cat",
+            "Cat Footprint" to "cat_footprint",
+            "Corgi" to "corgi",
+            "Dog" to "dog",
+            "Dog Paw" to "dog_paw",
+            "Doge" to "doge",
+            "Duck" to "duck",
+            "Gorilla" to "gorilla"
+        )
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_image_picker, null)
+        val recyclerView = dialogView.findViewById<RecyclerView>(R.id.imageGrid).apply {
+            layoutManager = GridLayoutManager(this@ProfileSettingsActivity, 2) // Fixed to 2 columns
+            addItemDecoration(GridSpacingItemDecoration(2, 16.dpToPx(), true))
+            adapter = ImageAdapter(
+                animals.map { (name, id) -> UserProfileCache.profileImages[id]!! to id },
+                false
+            ) { selectedId ->
+                selectedProfileId = selectedId
+                profilePic.setImageResource(UserProfileCache.profileImages[selectedId]!!)
+            }
         }
 
-        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) {
-            openImagePicker()
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Select Animal")
+            .setView(dialogView)
+            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+            .show()
+    }
+    private fun showImageSelectionDialog(isBanner: Boolean) {
+        if (!isBanner) {
+            showAnimalSelectionDialog()
+            return
+        }
+        val images = if (isBanner) UserProfileCache.bannerImages else UserProfileCache.profileImages
+        val currentSelection = if (isBanner) selectedBannerId else selectedProfileId
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_image_picker, null)
+        val recyclerView = dialogView.findViewById<RecyclerView>(R.id.imageGrid)
+
+        recyclerView.layoutManager = if (isBanner) {
+            LinearLayoutManager(this)
         } else {
-            requestPermissionLauncher.launch(permission)
-        }
-    }
-
-    private fun openImagePicker() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        pickImageLauncher.launch(intent)
-    }
-
-    private fun launchImageCropper(sourceUri: Uri) {
-        val destinationUri = Uri.fromFile(File(cacheDir, "cropped_${UUID.randomUUID()}.jpg"))
-
-        val uCropOptions = UCrop.Options().apply {
-            setCompressionQuality(90)
-            setHideBottomControls(false)
-            setFreeStyleCropEnabled(true)
-            setShowCropGrid(true)
-            setShowCropFrame(true)
-            setAllowedGestures(UCropActivity.SCALE, UCropActivity.ROTATE, UCropActivity.ALL)
-            setMaxScaleMultiplier(5f)
-            setCircleDimmedLayer(currentImageRequest == REQUEST_PROFILE_IMAGE) // Make profile crop circular
-            setToolbarTitle(if (currentImageRequest == REQUEST_BANNER_IMAGE) "Crop Banner" else "Crop Profile Picture")
-
-            setToolbarColor(ContextCompat.getColor(this@ProfileSettingsActivity, R.color.white))
-            setStatusBarColor(ContextCompat.getColor(this@ProfileSettingsActivity, R.color.black))
-            setToolbarWidgetColor(ContextCompat.getColor(this@ProfileSettingsActivity, R.color.black))
-        }
-
-        val uCropIntent = when (currentImageRequest) {
-            REQUEST_BANNER_IMAGE -> {
-                // For banner, use a wider aspect ratio (e.g., 16:9)
-                UCrop.of(sourceUri, destinationUri)
-                    .withAspectRatio(16f, 9f)
-                    .withOptions(uCropOptions)
-                    .getIntent(this)
-            }
-            REQUEST_PROFILE_IMAGE -> {
-                // For profile picture, use a 1:1 (square) aspect ratio
-                UCrop.of(sourceUri, destinationUri)
-                    .withAspectRatio(1f, 1f)
-                    .withOptions(uCropOptions)
-                    .getIntent(this)
-            }
-            else -> {
-                UCrop.of(sourceUri, destinationUri)
-                    .withOptions(uCropOptions)
-                    .getIntent(this)
+            GridLayoutManager(this, 2).apply {
+                spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                    override fun getSpanSize(position: Int) = 1
+                }
             }
         }
 
-        cropImageLauncher.launch(uCropIntent)
-    }
-    private fun reCropExistingImage(imagePath: String) {
-        val imageFile = File(imagePath)
-        if (imageFile.exists()) {
-            val sourceUri = Uri.fromFile(imageFile)
-            launchImageCropper(sourceUri)
-        } else {
-            Toast.makeText(this, "Image file not found", Toast.LENGTH_SHORT).show()
+        // Create adapter with proper click handling
+        val adapter = ImageAdapter(
+            images.map { (id, resId) -> resId to id },
+            isBanner
+        ) { selectedId ->
+            // This lambda will be called when an item is clicked
+            try {
+                if (isBanner) {
+                    selectedBannerId = selectedId
+                    bannerImageView.setImageResource(images[selectedId] ?: R.drawable.banner3)
+                } else {
+                    selectedProfileId = selectedId
+                    profilePic.setImageResource(images[selectedId] ?: R.drawable.profile)
+                }
+            } catch (e: Exception) {
+                Log.e("ImageSelection", "Error setting image: ${e.message}")
+                Toast.makeText(this, "Error selecting image", Toast.LENGTH_SHORT).show()
+            }
         }
+
+        adapter.setSelectedItem(currentSelection)
+        recyclerView.adapter = adapter
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(if (isBanner) "Select Banner" else "Select Profile Picture")
+            .setView(dialogView)
+            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+            .show()
     }
 
-    private fun loadImageFromUri(uri: String?, imageView: ImageView) {
-        if (uri != null) {
-            val imageFile = File(uri)
-            if (imageFile.exists()) {
-                val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
-                imageView.setImageBitmap(bitmap)
+    // Add this extension function
+    private fun Int.dpToPx(): Int = (this * resources.displayMetrics.density).toInt()
+
+    // Add this ItemDecoration class as an inner class
+    inner class GridSpacingItemDecoration(
+        private val spanCount: Int,
+        private val spacing: Int,
+        private val includeEdge: Boolean
+    ) : RecyclerView.ItemDecoration() {
+
+        override fun getItemOffsets(
+            outRect: Rect,
+            view: View,
+            parent: RecyclerView,
+            state: RecyclerView.State
+        ) {
+            val position = parent.getChildAdapterPosition(view)
+            val column = position % spanCount
+
+            if (includeEdge) {
+                outRect.left = spacing - column * spacing / spanCount
+                outRect.right = (column + 1) * spacing / spanCount
+                if (position < spanCount) outRect.top = spacing
+                outRect.bottom = spacing
+            } else {
+                outRect.left = column * spacing / spanCount
+                outRect.right = spacing - (column + 1) * spacing / spanCount
+                if (position >= spanCount) outRect.top = spacing
             }
         }
     }
 
     private fun loadSavedData() {
-        customBannerUri = sharedPreferences.getString("customBannerUri", null)
-        customProfileUri = sharedPreferences.getString("customProfileUri", null)
+        selectedBannerId = sharedPreferences.getString("bannerId", "banner3") ?: "banner3"
+        selectedProfileId = sharedPreferences.getString("profileId", "capybara") ?: "capybara"
 
-        selectedBannerResId = sharedPreferences.getInt("bannerImageResId", R.drawable.banner3)
-        selectedProfileResId = sharedPreferences.getInt("profileImageResId", R.drawable.profile)
-
-        if (customBannerUri != null) {
-            loadImageFromUri(customBannerUri, bannerImageView)
-        } else {
-            bannerImageView.setImageResource(selectedBannerResId)
-        }
-
-        if (customProfileUri != null) {
-            loadImageFromUri(customProfileUri, profilePic)
-        } else {
-            profilePic.setImageResource(selectedProfileResId)
-        }
-
+        bannerImageView.setImageResource(UserProfileCache.getCurrentBannerDrawable())
+        profilePic.setImageResource(UserProfileCache.getCurrentProfileDrawable())
         usernameEditText.setText(sharedPreferences.getString("username", ""))
         bioEditText.setText(sharedPreferences.getString("bio", ""))
     }
 
     private fun saveData() {
-        val editor = sharedPreferences.edit()
-
-        editor.putInt("bannerImageResId", selectedBannerResId)
-        editor.putInt("profileImageResId", selectedProfileResId)
-
-        if (customBannerUri != null) {
-            editor.putString("customBannerUri", customBannerUri)
+        sharedPreferences.edit().apply {
+            putString("bannerId", selectedBannerId)
+            putString("profileId", selectedProfileId)
+            putString("username", usernameEditText.text.toString())
+            putString("bio", bioEditText.text.toString())
+            putLong("lastModified", System.currentTimeMillis())
+            apply()
         }
 
-        if (customProfileUri != null) {
-            editor.putString("customProfileUri", customProfileUri)
-        }
+        val userId = getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
+            .getString("userId", null)
 
-        val username = usernameEditText.text.toString()
-        val bio = bioEditText.text.toString()
-        
-        editor.putString("username", username)
-        editor.putString("bio", bio)
-        editor.apply()
-
-        // Also save to Firebase if the user is logged in
-        val userAuthPrefs = getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
-        val userId = userAuthPrefs.getString("userId", null)
-        
-        if (userId != null) {
-            val database = FirebaseDatabase.getInstance()
-            val userRef = database.getReference("users").child(userId)
-            
-            val updates = HashMap<String, Any>()
-            updates["username"] = username
-            updates["bio"] = bio
-            
-            userRef.updateChildren(updates).addOnCompleteListener { task ->
-                if (!task.isSuccessful) {
-                    Toast.makeText(this, "Failed to update profile on server", Toast.LENGTH_SHORT).show()
-                }
+        userId?.let {
+            FirebaseDatabase.getInstance().getReference("users").child(it).updateChildren(
+                mapOf(
+                    "username" to usernameEditText.text.toString(),
+                    "bio" to bioEditText.text.toString(),
+                    "bannerId" to selectedBannerId,
+                    "profileId" to selectedProfileId
+                )
+            ).addOnFailureListener {
+                Toast.makeText(this, "Failed to update profile", Toast.LENGTH_SHORT).show()
             }
         }
-
-        editor.putLong("lastModified", System.currentTimeMillis())
-        editor.apply()
 
         finish()
     }

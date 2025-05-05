@@ -48,6 +48,24 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private val likedQuotes = mutableListOf<Quote>()
     private lateinit var quoteAdapter: QuoteAdapter
 
+    private val bannerImages = listOf(
+        R.drawable.banner1 to "banner1",
+        R.drawable.banner2 to "banner2",
+        R.drawable.banner3 to "banner3"
+    )
+
+    private val profileImages = listOf(
+        R.drawable.capybara to "capybara",
+        R.drawable.cat to "cat",
+        R.drawable.cat_footprint to "cat_footprint",
+        R.drawable.corgi to "corgi",
+        R.drawable.dog to "dog",
+        R.drawable.dog_paw to "dog_paw",
+        R.drawable.doge to "doge",
+        R.drawable.duck to "duck",
+        R.drawable.gorilla to "gorilla"
+    )
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -232,22 +250,24 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         usernameTextView.text = UserProfileCache.username
         bioTextView.text = UserProfileCache.bio
 
-        if (UserProfileCache.customBannerUri != null) {
-            loadImageFromUri(UserProfileCache.customBannerUri!!, bannerImageView)
-        } else {
-            bannerImageView.setImageResource(UserProfileCache.bannerResId)
-            bannerImageView.setColorFilter(requireContext().getColor(R.color.green))
+        // Set banner image based on stored ID
+        bannerImages.firstOrNull { it.second == UserProfileCache.bannerId }?.let {
+            bannerImageView.setImageResource(it.first)
+        } ?: run {
+            bannerImageView.setImageResource(R.drawable.banner3)
         }
 
-        if (UserProfileCache.customProfileUri != null) {
-            loadImageFromUri(UserProfileCache.customProfileUri!!, profilePic)
-        } else {
-            profilePic.setImageResource(UserProfileCache.profileResId)
+        // Set profile image based on stored ID
+        profileImages.firstOrNull { it.second == UserProfileCache.profileId }?.let {
+            profilePic.setImageResource(it.first)
+        } ?: run {
+            profilePic.setImageResource(R.drawable.profile)
         }
     }
 
     override fun onResume() {
         super.onResume()
+        UserProfileCache.isDataLoaded = false // Force refresh
         val userAuthPrefs = requireContext().getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
         val userId = userAuthPrefs.getString("userId", null)
 
@@ -255,6 +275,13 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             loadUserDataFromFirebase(userId)
         } else {
             loadSavedData()
+        }
+
+        // Refresh stats and quotes
+        userId?.let {
+            loadUserQuotes(it)
+            loadLikedQuotes(it)
+            loadUserStats(it)
         }
     }
 
@@ -267,12 +294,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                 if (snapshot.exists()) {
                     UserProfileCache.username = snapshot.child("username").getValue(String::class.java) ?: "Default Name"
                     UserProfileCache.bio = snapshot.child("bio").getValue(String::class.java) ?: "No bio available"
-
-                    UserProfileCache.customBannerUri = sharedPreferences.getString("customBannerUri", null)
-                    UserProfileCache.customProfileUri = sharedPreferences.getString("customProfileUri", null)
-
-                    UserProfileCache.bannerResId = sharedPreferences.getInt("bannerImageResId", R.drawable.banner3)
-                    UserProfileCache.profileResId = sharedPreferences.getInt("profileImageResId", R.drawable.profile)
+                    UserProfileCache.bannerId = snapshot.child("bannerId").getValue(String::class.java) ?: "banner3"
+                    UserProfileCache.profileId = snapshot.child("profileId").getValue(String::class.java) ?: "profile1"
 
                     UserProfileCache.isDataLoaded = true
                     UserProfileCache.lastUpdateTime = System.currentTimeMillis()
@@ -291,10 +314,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     }
 
     private fun loadSavedData() {
-        UserProfileCache.customBannerUri = sharedPreferences.getString("customBannerUri", null)
-        UserProfileCache.customProfileUri = sharedPreferences.getString("customProfileUri", null)
-        UserProfileCache.bannerResId = sharedPreferences.getInt("bannerImageResId", R.drawable.banner3)
-        UserProfileCache.profileResId = sharedPreferences.getInt("profileImageResId", R.drawable.profile)
+        UserProfileCache.bannerId = sharedPreferences.getString("bannerId", "banner3") ?: "banner3"
+        UserProfileCache.profileId = sharedPreferences.getString("profileId", "profile1") ?: "profile1"
         UserProfileCache.username = sharedPreferences.getString("username", "Default Name") ?: "Default Name"
         UserProfileCache.bio = sharedPreferences.getString("bio", "No bio available") ?: "No bio available"
         UserProfileCache.isDataLoaded = true
