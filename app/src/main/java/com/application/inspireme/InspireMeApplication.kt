@@ -1,6 +1,7 @@
 package com.application.inspireme
 
 import android.app.Application
+import com.application.inspireme.api.FirebaseManager
 import com.google.firebase.database.FirebaseDatabase
 
 class InspireMeApplication : Application() {
@@ -9,5 +10,6 @@ class InspireMeApplication : Application() {
         
         // Initialize Firebase
         FirebaseDatabase.getInstance().setPersistenceEnabled(true)
+        FirebaseManager.initialize(this)
     }
 }

@@ -15,13 +15,89 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.firebase.auth.FirebaseAuth
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseUser
+
+
+
 
 class LoginActivity : Activity() {
     private lateinit var sharedPreferences: SharedPreferences
     private var progressBar: ProgressBar? = null
     private val TAG = "LoginActivity"
     private lateinit var auth: FirebaseAuth
+    private val REQUEST_CODE_NOTIFICATION_PERMISSION = 1001
+
+    private fun checkAndRequestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    // Permission already granted
+                }
+                ActivityCompat.shouldShowRequestPermissionRationale(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) -> {
+                    // Explain why you need the permission
+                    showPermissionExplanation()
+                }
+                else -> {
+                    // Request the permission
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                        REQUEST_CODE_NOTIFICATION_PERMISSION
+                    )
+                }
+            }
+        }
+    }
+
+    private fun showPermissionExplanation() {
+        AlertDialog.Builder(this)
+            .setTitle("Notifications Needed")
+            .setMessage("We need notification permission to alert you about new likes and followers.")
+            .setPositiveButton("OK") { _, _ ->
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    REQUEST_CODE_NOTIFICATION_PERMISSION
+                )
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    // Add this to handle permission result
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            REQUEST_CODE_NOTIFICATION_PERMISSION -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission granted
+                } else {
+                    // Permission denied
+                    Toast.makeText(
+                        this,
+                        "Notifications will be disabled",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
 
     private fun startMainActivity() {
         val intent = Intent(this, NavigationBarActivity::class.java)
@@ -96,17 +172,18 @@ class LoginActivity : Activity() {
             auth.signInWithEmailAndPassword(emailInput, passwordInput)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
-                        // Sign in success, update UI with the signed-in user's information
                         Log.d(TAG, "signInWithEmail:success")
                         val user = auth.currentUser
-                        
-                        // Save login status and user ID
+
                         val editor = sharedPreferences.edit()
                         editor.putBoolean("isLoggedIn", true)
                         editor.putString("userId", user?.uid)
                         editor.apply()
 
                         progressBar?.visibility = View.GONE
+
+                        checkAndRequestNotificationPermission()
+
                         startMainActivity()
                     } else {
                         // If sign in fails, display a message to the user.
@@ -128,9 +205,9 @@ class LoginActivity : Activity() {
 
     override fun onStart() {
         super.onStart()
-        // Check if user is signed in (non-null) and update UI accordingly.
         val currentUser = auth.currentUser
-        if(currentUser != null){
+        if (currentUser != null) {
+            checkAndRequestNotificationPermission()
             startMainActivity()
         }
     }

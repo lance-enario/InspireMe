@@ -1,5 +1,6 @@
 package com.application.inspireme.api
 
+import android.app.NotificationChannel
 import android.util.Log
 import com.application.inspireme.model.Quote
 import com.application.inspireme.model.QuoteResponse
@@ -7,6 +8,16 @@ import com.application.inspireme.model.User
 import com.application.inspireme.model.LikedQuote
 import com.application.inspireme.model.UserNotification
 import com.google.firebase.auth.FirebaseAuth
+
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import com.application.inspireme.NavigationBarActivity
+import com.application.inspireme.R
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -21,6 +32,11 @@ object FirebaseManager {
     private val followersRef = database.getReference("followers")
     private val followingRef = database.getReference("following")
     private val notificationsRef = database.getReference("notifications")
+    private lateinit var applicationContext: Context
+
+    fun initialize(context: Context) {
+        applicationContext = context.applicationContext
+    }
 
     fun saveUser(userId: String, user: User, onComplete: (Boolean) -> Unit) {
         usersRef.child(userId).setValue(user)
@@ -172,49 +188,48 @@ object FirebaseManager {
     }
 
     fun likeQuote(userId: String, quote: Quote, onComplete: (Boolean) -> Unit) {
-    val likedQuotesUserRef = likedQuotesRef.child(userId)
-    val quoteRef = likedQuotesUserRef.child(quote.id)
-    
-    val likedQuote = LikedQuote(
-        quote = quote.quote,
-        author = quote.author,
-        timestamp = System.currentTimeMillis()
-    )
-    
-    quoteRef.setValue(likedQuote)
-        .addOnCompleteListener { task ->
-            if (!quote.id.startsWith("api_") && quote.author.isNotEmpty()) {
-                if (!task.isSuccessful) {
-                    Log.e("FirebaseManager", "Error liking quote: ${task.exception?.message}")
+        val likedQuotesUserRef = likedQuotesRef.child(userId)
+        val quoteRef = likedQuotesUserRef.child(quote.id)
+        val likedQuote = LikedQuote(
+            quote = quote.quote,
+            author = quote.author,
+            timestamp = System.currentTimeMillis()
+        )
+
+        quoteRef.setValue(likedQuote)
+            .addOnCompleteListener { task ->
+                if (!quote.id.startsWith("api_") && quote.author.isNotEmpty()) {
+                    if (!task.isSuccessful) {
+                        Log.e("FirebaseManager", "Error liking quote: ${task.exception?.message}")
+                    }
+                    val authorId = quote.userId
+                    if (authorId.isNotEmpty() && authorId != userId) {
+                        // Get username first, then send notification
+                        getUserData(userId, { user ->
+                            sendNotification(
+                                authorId,
+                                userId,
+                                "Someone liked your quote",
+                                "${user.username} liked your quote: \"${quote.quote.take(50)}${if (quote.quote.length > 50) "..." else ""}\"",
+                                "LIKE_QUOTE",
+                                quote.id
+                            )
+                        }, { error ->
+                            // If username lookup fails, still send notification with generic name
+                            sendNotification(
+                                authorId,
+                                userId,
+                                "Someone liked your quote",
+                                "Someone liked your quote: \"${quote.quote.take(50)}${if (quote.quote.length > 50) "..." else ""}\"",
+                                "LIKE_QUOTE",
+                                quote.id
+                            )
+                        })
+                    }
                 }
-                val authorId = quote.userId
-                if (authorId.isNotEmpty() && authorId != userId) {
-                    // Get username first, then send notification
-                    getUserData(userId, { user ->
-                        sendNotification(
-                            authorId,
-                            userId,
-                            "Someone liked your quote",
-                            "${user.username} liked your quote: \"${quote.quote.take(50)}${if (quote.quote.length > 50) "..." else ""}\"",
-                            "LIKE_QUOTE",
-                            quote.id
-                        )
-                    }, { error ->
-                        // If username lookup fails, still send notification with generic name
-                        sendNotification(
-                            authorId,
-                            userId,
-                            "Someone liked your quote",
-                            "Someone liked your quote: \"${quote.quote.take(50)}${if (quote.quote.length > 50) "..." else ""}\"",
-                            "LIKE_QUOTE",
-                            quote.id
-                        )
-                    })
-                }
+                onComplete(task.isSuccessful)
             }
-            onComplete(task.isSuccessful)
-        }
-}
+    }
 
     fun unlikeQuote(userId: String, quoteId: String, onComplete: (Boolean) -> Unit) {
         val quoteRef = likedQuotesRef.child(userId).child(quoteId)
@@ -437,8 +452,57 @@ object FirebaseManager {
             timestamp = System.currentTimeMillis(),
             read = false
         )
-        
+
         notificationsRef.child(recipientId).child(notification.id).setValue(notification)
+            .addOnSuccessListener {
+                // Show system notification after saving to Firebase
+                showSystemNotification(applicationContext, notification)
+            }
+    }
+
+    private fun showSystemNotification(context: Context, notification: UserNotification) {
+        val notificationManager = ContextCompat.getSystemService(
+            context,
+            NotificationManager::class.java
+        ) ?: return
+
+        // Create notification channel (required for Android 8.0+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "inspireme_channel_id",
+                "InspireMe Notifications",
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = "Notifications for new quotes and followers"
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        // Intent to open the app when notification is tapped
+        val intent = Intent(context, NavigationBarActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra("notification_id", notification.id)
+            putExtra("notification_type", notification.type)
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        // Build the notification
+        val builder = NotificationCompat.Builder(context, "inspireme_channel_id")
+            .setSmallIcon(R.drawable.personfileld) // Make sure this icon exists
+            .setContentTitle(notification.title)
+            .setContentText(notification.message)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        // Show the notification with a unique ID
+        notificationManager.notify(notification.id.hashCode(), builder.build())
     }
 
     // Get all notifications for a user
