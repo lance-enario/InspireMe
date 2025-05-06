@@ -223,13 +223,14 @@
 
         <!-- Activity Cards Section -->
         <androidx.recyclerview.widget.RecyclerView
+
             android:id="@+id/activity_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:clipToPadding="false"
             android:nestedScrollingEnabled="false"
-            android:paddingBottom="16dp"
+            android:paddingBottom="76dp"
             app:layout_constraintTop_toBottomOf="@id/recent_activity_label"
             tools:itemCount="3"
             tools:listitem="@layout/item_activity_card" />

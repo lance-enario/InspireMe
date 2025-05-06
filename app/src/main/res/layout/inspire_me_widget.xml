@@ -14,14 +14,6 @@
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
-        <!-- Profile Image -->
-        <ImageView
-            android:id="@+id/widget_creator_profile"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@drawable/personfileld"
-            app:tint="#4CAF50" />
-
         <!-- Title/Creator Stack -->
         <LinearLayout
             android:layout_width="0dp"

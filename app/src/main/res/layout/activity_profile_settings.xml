@@ -42,12 +42,6 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
         </androidx.appcompat.widget.Toolbar>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@drawable/rectangle" />
-
         <!-- Banner Image Section -->
         <FrameLayout
             android:layout_width="match_parent"
@@ -66,9 +60,11 @@
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/editBannerButton"
                 android:layout_width="wrap_content"
+                android:clickable="false"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|end"
                 android:layout_margin="16dp"
+                android:focusable="false"
                 android:src="@drawable/edit_icon"
                 app:fabSize="mini"
                 app:backgroundTint="@color/white" />
@@ -91,10 +87,12 @@
                 app:civ_border_width="2dp" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:focusable="false"
                 android:id="@+id/editProfileButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignEnd="@id/ProfilePic"
+                android:clickable="false"
                 android:layout_alignBottom="@id/ProfilePic"
                 android:src="@drawable/edit_icon"
                 app:fabSize="mini"
