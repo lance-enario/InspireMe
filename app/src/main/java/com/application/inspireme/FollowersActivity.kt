@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.application.inspireme.adapters.FollowerAdapter
+import com.application.inspireme.adapter.FollowerAdapter
 import com.application.inspireme.api.FirebaseManager
 import com.application.inspireme.model.User
 
