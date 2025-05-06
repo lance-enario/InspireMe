@@ -20,16 +20,13 @@ class ImageAdapter(
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val imageView: ImageView = view.findViewById(R.id.imageItem)
         val selectionIndicator: View = view.findViewById(R.id.selectionIndicator)
-        private val clickArea: View = view.findViewById(R.id.clickArea)
 
         init {
-            // Make sure we're clicking on the entire item, not just parts
-            clickArea.setOnClickListener {
+            view.setOnClickListener {
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
-                    val (_, id) = images[position]
-                    selectedItem = id
-                    onItemSelected(id)
+                    selectedItem = images[position].second
+                    onItemSelected(selectedItem!!)
                     notifyDataSetChanged()
                 }
             }
@@ -44,25 +41,18 @@ class ImageAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val (drawableRes, id) = images[position]
+
         try {
             holder.imageView.setImageResource(drawableRes)
             holder.imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-
-            // Ensure the image doesn't overlap the border
-            holder.imageView.setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx())
-
-            holder.selectionIndicator.visibility =
-                if (id == selectedItem) View.VISIBLE else View.INVISIBLE
-        } catch (e: Resources.NotFoundException) {
-            Log.e("ImageAdapter", "Resource not found: $drawableRes")
-            // Fallback with white background
-            holder.imageView.setImageResource(R.drawable.profile)
-            holder.imageView.setBackgroundColor(ContextCompat.getColor(holder.itemView.context, android.R.color.white))
+            holder.selectionIndicator.visibility = if (id == selectedItem) View.VISIBLE else View.INVISIBLE
+        } catch (e: Exception) {
+            Log.e("ImageAdapter", "Error loading image: $drawableRes", e)
+            holder.imageView.setImageResource(
+                if (isBanner) R.drawable.banner3 else R.drawable.capybara
+            )
         }
     }
-
-    // Add this extension function to your adapter
-    private fun Int.dpToPx(): Int = (this * Resources.getSystem().displayMetrics.density).toInt()
 
     override fun getItemCount() = images.size
 

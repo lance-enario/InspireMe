@@ -73,16 +73,37 @@
                 android:paddingLeft="16dp"
                 android:singleLine="true" />
 
-            <EditText
-                android:id="@+id/Password"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="45dp"
-                android:layout_gravity="center_horizontal"
-                android:background="@drawable/border"
-                android:hint="Password"
-                android:paddingLeft="16dp"
-                android:inputType="textPassword"
-                android:singleLine="true" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp">
+
+                <EditText
+                    android:id="@+id/Password"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/border"
+                    android:hint="Password"
+                    android:inputType="textPassword"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="50dp"
+                    android:singleLine="true"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
+
+                <ImageButton
+                    android:id="@+id/togglePassword"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Toggle password visibility"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_visibility_off"
+                    app:layout_constraintBottom_toBottomOf="@id/Password"
+                    app:layout_constraintEnd_toEndOf="@id/Password"
+                    app:layout_constraintTop_toTopOf="@id/Password"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -119,7 +140,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="12dp"
             android:layout_marginTop="12dp"
-            android:layout_marginBottom="6dp"
+            android:layout_marginBottom="120dp"
             android:gravity="center"
             android:orientation="horizontal">
 
@@ -138,89 +159,6 @@
                 android:textSize="16dp"
                 android:textStyle="bold" />
         </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center">
-
-            <View
-                android:layout_weight="1"
-                android:layout_width="wrap_content"
-                android:layout_height="1dp"
-                android:background="@drawable/line"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="20dp"
-                android:layout_marginHorizontal="4dp"
-                android:text="OR" />
-
-            <View
-                android:layout_weight="1"
-                android:layout_width="wrap_content"
-                android:layout_height="1dp"
-                android:background="@drawable/line"/>
-
-        </LinearLayout>
-
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginHorizontal="12dp"
-            android:layout_marginTop="6dp"
-            android:layout_marginBottom="6dp"
-            android:background="@drawable/login_option_border"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="25dp"
-                android:layout_gravity="center_vertical"
-                android:layout_weight="0.5"
-                android:src="@drawable/googlehollow" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_weight="0.5"
-                android:text="Sign in with Google"
-                android:textColor="@color/white"
-                android:textSize="16dp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginHorizontal="12dp"
-            android:layout_marginTop="6dp"
-            android:layout_marginBottom="6dp"
-            android:background="@drawable/login_option_border"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="25dp"
-                android:layout_gravity="center_vertical"
-                android:layout_weight="0.5"
-                android:src="@drawable/facebookhollow" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_weight="0.5"
-                android:text="Sign in with Facebook"
-                android:textColor="@color/white"
-                android:textSize="16dp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
 
     </LinearLayout>
 

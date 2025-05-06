@@ -3,9 +3,7 @@ package com.application.inspireme
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -21,16 +19,10 @@ import com.application.inspireme.model.Quote
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import de.hdodenhof.circleimageview.CircleImageView
 import android.app.AlertDialog
 import android.content.res.ColorStateList
 import androidx.core.content.ContextCompat
-import java.io.File
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private lateinit var bannerImageView: ImageView
@@ -57,12 +49,15 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private val bannerImages = listOf(
         R.drawable.banner1 to "banner1",
         R.drawable.banner2 to "banner2",
-        R.drawable.banner3 to "banner3"
+        R.drawable.banner3 to "banner3",
+        R.drawable.banner4 to "banner4",
+        R.drawable.banner5 to "banner5",
+        R.drawable.banner6 to "banner6"
     )
 
     private val profileImages = listOf(
         R.drawable.capybara to "capybara",
-        R.drawable.cat to "cat",
+        R.drawable.cat_icon to "cat",
         R.drawable.cat_footprint to "cat_footprint",
         R.drawable.corgi to "corgi",
         R.drawable.dog to "dog",

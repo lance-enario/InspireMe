@@ -76,7 +76,7 @@ class ProfileSettingsActivity : AppCompatActivity() {
         }
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("Select Animal")
+            .setTitle("Select Profile Picture")
             .setView(dialogView)
             .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
             .show()
@@ -168,38 +168,64 @@ class ProfileSettingsActivity : AppCompatActivity() {
         selectedBannerId = sharedPreferences.getString("bannerId", "banner3") ?: "banner3"
         selectedProfileId = sharedPreferences.getString("profileId", "capybara") ?: "capybara"
 
-        bannerImageView.setImageResource(UserProfileCache.getCurrentBannerDrawable())
-        profilePic.setImageResource(UserProfileCache.getCurrentProfileDrawable())
-        usernameEditText.setText(sharedPreferences.getString("username", ""))
-        bioEditText.setText(sharedPreferences.getString("bio", ""))
+        // Update cache from SharedPreferences
+        UserProfileCache.bannerId = selectedBannerId
+        UserProfileCache.profileId = selectedProfileId
+        UserProfileCache.username = sharedPreferences.getString("username", "") ?: ""
+        UserProfileCache.bio = sharedPreferences.getString("bio", "") ?: ""
+
+        // Load images
+        bannerImageView.setImageResource(UserProfileCache.bannerImages[selectedBannerId] ?: R.drawable.banner3)
+        profilePic.setImageResource(UserProfileCache.profileImages[selectedProfileId] ?: R.drawable.capybara)
+        usernameEditText.setText(UserProfileCache.username)
+        bioEditText.setText(UserProfileCache.bio)
     }
 
     private fun saveData() {
+        val username = usernameEditText.text.toString()
+        val bio = bioEditText.text.toString()
+
+        // Update local cache immediately
+        UserProfileCache.username = username
+        UserProfileCache.bio = bio
+        UserProfileCache.bannerId = selectedBannerId
+        UserProfileCache.profileId = selectedProfileId
+        UserProfileCache.isDataLoaded = true
+        UserProfileCache.lastUpdateTime = System.currentTimeMillis()
+
+        // Save to SharedPreferences
         sharedPreferences.edit().apply {
             putString("bannerId", selectedBannerId)
             putString("profileId", selectedProfileId)
-            putString("username", usernameEditText.text.toString())
-            putString("bio", bioEditText.text.toString())
+            putString("username", username)
+            putString("bio", bio)
             putLong("lastModified", System.currentTimeMillis())
-            apply()
+            apply() // Using apply() for async save
         }
 
+        // Save to Firebase
         val userId = getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
             .getString("userId", null)
 
         userId?.let {
             FirebaseDatabase.getInstance().getReference("users").child(it).updateChildren(
                 mapOf(
-                    "username" to usernameEditText.text.toString(),
-                    "bio" to bioEditText.text.toString(),
+                    "username" to username,
+                    "bio" to bio,
                     "bannerId" to selectedBannerId,
                     "profileId" to selectedProfileId
                 )
-            ).addOnFailureListener {
-                Toast.makeText(this, "Failed to update profile", Toast.LENGTH_SHORT).show()
+            ).addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
+                    finish()
+                } else {
+                    Toast.makeText(this, "Failed to update profile: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                }
             }
+        } ?: run {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
+            finish()
         }
-
-        finish()
     }
 }

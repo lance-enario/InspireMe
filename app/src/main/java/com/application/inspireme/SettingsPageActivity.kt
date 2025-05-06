@@ -29,9 +29,7 @@ class SettingsPageActivity : AppCompatActivity() {
 
         val settingsList = listOf(
             SettingItem(R.drawable.account_icon, "Account", R.drawable.arrow),
-            SettingItem(R.drawable.notifications_icon, "Notifications", R.drawable.arrow),
             SettingItem(R.drawable.privacy_icon, "Privacy", R.drawable.arrow),
-            SettingItem(R.drawable.language_icon, "Language", R.drawable.arrow),
             SettingItem(R.drawable.about_icon, "About", R.drawable.arrow),
             SettingItem(R.drawable.logout_icon, "Logout", null)
         )
@@ -43,10 +41,8 @@ class SettingsPageActivity : AppCompatActivity() {
         listView.setOnItemClickListener { _, _, position, _ ->
             val setting = settingsList[position]
             when (setting.text) {
-                "Account" -> startActivity(Intent(this, AccountActivity::class.java))
-                "Notifications" -> startActivity(Intent(this, NotificationsActivity::class.java))
+                "Account" -> startActivity(Intent(this, ProfileSettingsActivity::class.java))
                 "Privacy" -> startActivity(Intent(this, PrivacyActivity::class.java))
-                "Language" -> startActivity(Intent(this, LanguageActivity::class.java))
                 "About" -> startActivity(Intent(this, AboutActivity::class.java))
                 "Logout" -> showLogoutDialog()
             }

@@ -5,11 +5,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.text.method.HideReturnsTransformationMethod
+import android.text.method.PasswordTransformationMethod
 import android.util.Log
 import android.util.Patterns
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -23,6 +26,16 @@ class LoginActivity : Activity() {
     private val TAG = "LoginActivity"
     private lateinit var auth: FirebaseAuth
 
+    private fun togglePasswordVisibility(editText: EditText, button: ImageButton) {
+        if (editText.transformationMethod == PasswordTransformationMethod.getInstance()) {
+            editText.transformationMethod = HideReturnsTransformationMethod.getInstance()
+            button.setImageResource(R.drawable.ic_visibility)
+        } else {
+            editText.transformationMethod = PasswordTransformationMethod.getInstance()
+            button.setImageResource(R.drawable.ic_visibility_off)
+        }
+        editText.setSelection(editText.text.length)
+    }
     private fun startMainActivity() {
         val intent = Intent(this, NavigationBarActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -36,6 +49,8 @@ class LoginActivity : Activity() {
         // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
 
+
+
         // Initialize SharedPreferences
         sharedPreferences = getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
 
@@ -46,6 +61,12 @@ class LoginActivity : Activity() {
         }
 
         setContentView(R.layout.activity_login)
+
+        val togglePassword = findViewById<ImageButton>(R.id.togglePassword)
+        val passwordInput = findViewById<EditText>(R.id.Password)
+        togglePassword.setOnClickListener {
+            togglePasswordVisibility(passwordInput, togglePassword)
+        }
 
         val buttonLogin = findViewById<Button>(R.id.LoginButton)
         progressBar = findViewById(R.id.progressBar)

@@ -5,11 +5,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.text.method.HideReturnsTransformationMethod
+import android.text.method.PasswordTransformationMethod
 import android.util.Log
 import android.util.Patterns
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -39,6 +42,8 @@ class RegisterActivity : Activity() {
         val confirmPasswordInput = findViewById<EditText>(R.id.ConfirmPassword)
         val signupButton = findViewById<Button>(R.id.SignupButton)
         val loginButton = findViewById<TextView>(R.id.SigninText)
+        val togglePassword = findViewById<ImageButton>(R.id.togglePassword)
+        val toggleConfirmPassword = findViewById<ImageButton>(R.id.toggleConfirmPassword)
         progressBar = findViewById(R.id.progressBar)
 
         // Create progress bar if it doesn't exist in layout
@@ -60,6 +65,14 @@ class RegisterActivity : Activity() {
 
                 layout.addView(progressBar, params)
             }
+        }
+
+        togglePassword.setOnClickListener {
+            togglePasswordVisibility(passwordInput, togglePassword)
+        }
+
+        toggleConfirmPassword.setOnClickListener {
+            togglePasswordVisibility(confirmPasswordInput, toggleConfirmPassword)
         }
 
         signupButton.setOnClickListener {
@@ -154,4 +167,15 @@ class RegisterActivity : Activity() {
             finish()
         }
     }
+    private fun togglePasswordVisibility(editText: EditText, button: ImageButton) {
+        if (editText.transformationMethod == PasswordTransformationMethod.getInstance()) {
+            editText.transformationMethod = HideReturnsTransformationMethod.getInstance()
+            button.setImageResource(R.drawable.ic_visibility)
+        } else {
+            editText.transformationMethod = PasswordTransformationMethod.getInstance()
+            button.setImageResource(R.drawable.ic_visibility_off)
+        }
+        editText.setSelection(editText.text.length)
+    }
+
 }
