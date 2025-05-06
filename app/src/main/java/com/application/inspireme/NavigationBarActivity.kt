@@ -10,7 +10,7 @@ import com.google.android.material.navigation.NavigationBarView
 
 class NavigationBarActivity : AppCompatActivity() {
 
-    private fun loadFragment(fragment: Fragment, addToBackStack: Boolean = false) {
+    fun loadFragment(fragment: Fragment, addToBackStack: Boolean = false) {
         val transaction = supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment)
 

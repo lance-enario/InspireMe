@@ -22,25 +22,27 @@ import com.application.inspireme.SettingsPageActivity
 import com.application.inspireme.adapter.QuoteFeedAdapter
 import com.application.inspireme.adapter.SuggestedUsersAdapter
 import com.application.inspireme.api.FirebaseManager
+import com.application.inspireme.listeners.OnUserProfileClickListener
 import com.application.inspireme.model.Quote
 import com.application.inspireme.model.User
 import com.google.firebase.auth.FirebaseAuth
 import java.util.concurrent.atomic.AtomicInteger
 
-class HomeFragment : Fragment(R.layout.fragment_home) {
-    
+class HomeFragment : Fragment(R.layout.fragment_home), OnUserProfileClickListener {
+
     private lateinit var quotesRecyclerView: RecyclerView
     private lateinit var suggestedUsersRecyclerView: RecyclerView
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var quoteFeedAdapter: QuoteFeedAdapter
     private lateinit var suggestedUsersAdapter: SuggestedUsersAdapter
-    
+
     private val quotes = mutableListOf<Quote>()
     private val suggestedUsers = mutableListOf<User>()
-    private val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+    private var currentUserId: String? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
         view.findViewById<ImageButton>(R.id.button_settings).setOnClickListener {
             val intent = Intent(requireContext(), SettingsPageActivity::class.java)
@@ -55,24 +57,20 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         quotesRecyclerView = view.findViewById(R.id.quotes_recycler_view)
         suggestedUsersRecyclerView = view.findViewById(R.id.suggested_users_recycler_view)
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout)
-        
+
         // Set up quotes feed
         quotesRecyclerView.layoutManager = LinearLayoutManager(context)
-        quoteFeedAdapter = QuoteFeedAdapter(requireContext(), quotes, 
-            onLikeClicked = { quote, isLiked -> handleQuoteLike(quote, isLiked) }
-        )
+        quoteFeedAdapter = QuoteFeedAdapter(requireContext(), quotes, this::handleQuoteLike, this)
         quotesRecyclerView.adapter = quoteFeedAdapter
-        
+
         // Set up suggested users
         suggestedUsersRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        suggestedUsersAdapter = SuggestedUsersAdapter(suggestedUsers, 
-            onFollowClicked = { user, isFollowing -> handleFollowUser(user, isFollowing) }
-        )
+        suggestedUsersAdapter = SuggestedUsersAdapter(suggestedUsers, this::handleFollowUser, this)
         suggestedUsersRecyclerView.adapter = suggestedUsersAdapter
-        
+
         // Set up filter buttons
         setupFilterButtons(view)
-        
+
         swipeRefreshLayout.setOnRefreshListener {
             refreshContent()
         }
@@ -102,26 +100,26 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         val buttonRecent = view.findViewById<Button>(R.id.btn_recent)
         val buttonTrending = view.findViewById<Button>(R.id.btn_trending)
         val buttonPopular = view.findViewById<Button>(R.id.btn_popular)
-        
+
         filterButtons = mutableListOf(buttonForYou, buttonRecent, buttonTrending, buttonPopular)
-        
+
         // Set up click listeners
         buttonForYou.setOnClickListener {
             selectFilter(QuoteFilter.FOR_YOU)
         }
-        
+
         buttonRecent.setOnClickListener {
             selectFilter(QuoteFilter.RECENT)
         }
-        
+
         buttonTrending.setOnClickListener {
             selectFilter(QuoteFilter.TRENDING)
         }
-        
+
         buttonPopular.setOnClickListener {
             selectFilter(QuoteFilter.POPULAR)
         }
-        
+
         // Highlight the default selected button
         updateButtonStyles()
     }
@@ -137,7 +135,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun updateButtonStyles() {
         val selectedColor = ContextCompat.getColor(requireContext(), R.color.green)
         val unselectedColor = ContextCompat.getColor(requireContext(), R.color.light_gray)
-        
+
         filterButtons.forEachIndexed { index, button ->
             val isSelected = when(index) {
                 0 -> currentFilter == QuoteFilter.FOR_YOU
@@ -146,7 +144,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 3 -> currentFilter == QuoteFilter.POPULAR
                 else -> false
             }
-            
+
             button.backgroundTintList = ColorStateList.valueOf(
                 if (isSelected) selectedColor else unselectedColor
             )
@@ -178,7 +176,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
 
         FirebaseManager.getFollowing(
-            currentUserId,
+            currentUserId!!,
             onSuccess = { followingIds ->
                 if (followingIds.isEmpty()) {
                     // If not following anyone, load random quotes
@@ -187,12 +185,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     // Load both followed users' quotes and some random quotes
                     val followedQuotes = mutableListOf<Quote>()
                     val pendingUsers = AtomicInteger(followingIds.size)
-                    
+
                     // Fetch quotes from each followed user
                     followingIds.forEach { userId ->
                         FirebaseManager.getUserQuotes(userId) { userQuotes ->
                             followedQuotes.addAll(userQuotes)
-                            
+
                             if (pendingUsers.decrementAndGet() == 0) {
                                 FirebaseManager.getRandomQuoteBatch(
                                     onSuccess = { randomQuotes ->
@@ -226,7 +224,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         activity?.runOnUiThread {
             swipeRefreshLayout.isRefreshing = true
         }
-        
+
         FirebaseManager.getAllQuotes(
             onSuccess = { allQuotes ->
                 // Sort by timestamp (newest first)
@@ -248,7 +246,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         activity?.runOnUiThread {
             swipeRefreshLayout.isRefreshing = true
         }
-        
+
         // Trending based on quotes that have been liked recently
         FirebaseManager.getAllQuotes(
             onSuccess = { allQuotes ->
@@ -276,7 +274,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         activity?.runOnUiThread {
             swipeRefreshLayout.isRefreshing = true
         }
-        
+
         FirebaseManager.getRandomQuoteBatch(
             onSuccess = { fetchedQuotes ->
                 val popularQuotes = fetchedQuotes
@@ -303,47 +301,47 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     */
     private fun createMixedFeed(followedQuotes: List<Quote>, randomQuotes: List<Quote>): List<Quote> {
         val result = mutableListOf<Quote>()
-        
+
         // Filter out any duplicates between followed and random quotes
         val followedIds = followedQuotes.map { it.id }.toSet()
         val uniqueRandomQuotes = randomQuotes.filter { !followedIds.contains(it.id) }
-        
+
         // Prioritize recent quotes from followed users
         val sortedFollowed = followedQuotes.sortedByDescending { it.timestamp }
-        
+
         // use top 70% followed and 30% random
         if (sortedFollowed.size > 10) {
             val followedCount = (sortedFollowed.size * 0.7).toInt().coerceAtLeast(1)
             result.addAll(sortedFollowed.take(followedCount))
-            
+
             // Add random quotes, labeled as "discovery"
             result.addAll(uniqueRandomQuotes.shuffled().take(5).map { 
                 it.copy(isDiscovery = true)  // Add a flag to mark as discovery content
             })
-            
+
             // Add remaining followed quotes
             result.addAll(sortedFollowed.drop(followedCount))
         } else {
             // If few followed quotes, interleave them with random quotes
             val interleavedQuotes = mutableListOf<Quote>()
             val maxSize = maxOf(sortedFollowed.size, uniqueRandomQuotes.size)
-            
+
             for (i in 0 until maxSize) {
                 if (i < sortedFollowed.size) {
                     interleavedQuotes.add(sortedFollowed[i])
                 }
-                
+
                 if (i < uniqueRandomQuotes.size) {
                     interleavedQuotes.add(uniqueRandomQuotes[i].copy(isDiscovery = true))
                 }
             }
-            
+
             result.addAll(interleavedQuotes)
         }
-        
+
         return result
     }   
-    
+
     private fun loadRandomQuotes() {
         FirebaseManager.getRandomQuoteBatch(
             onSuccess = { fetchedQuotes ->
@@ -357,18 +355,18 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         )
     }
-    
+
     private fun updateQuotesFeed(newQuotes: List<Quote>) {
         activity?.runOnUiThread {
             quotes.clear()
             quotes.addAll(newQuotes)
             quoteFeedAdapter.notifyDataSetChanged()
             swipeRefreshLayout.isRefreshing = false
-            
+
             // Check and update like status for each quote
             if (currentUserId != null) {
                 for (quote in quotes) {
-                    FirebaseManager.checkIfQuoteLiked(currentUserId, quote.id) { isLiked ->
+                    FirebaseManager.checkIfQuoteLiked(currentUserId!!, quote.id) { isLiked ->
                         activity?.runOnUiThread {
                             quoteFeedAdapter.updateLikeStatus(quote.id, isLiked)
                         }
@@ -377,24 +375,24 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         }
     }
-    
+
     private fun loadSuggestedUsers() {
         if (currentUserId == null) {
             suggestedUsers.clear()
             suggestedUsersAdapter.notifyDataSetChanged()
             return
         }
-        
+
         FirebaseManager.getFollowing(
-            currentUserId,
+            currentUserId!!,
             onSuccess = { followingIds ->
                 val alreadyFollowing = followingIds.toSet()
-                
+
                 FirebaseManager.getAllUsers { allUsers ->
                     val filteredUsers = allUsers
                         .filter { it.id != currentUserId && !alreadyFollowing.contains(it.id) }
                         .take(10) // Limit to 10 suggestions
-                    
+
                     activity?.runOnUiThread {
                         suggestedUsers.clear()
                         suggestedUsers.addAll(filteredUsers)
@@ -410,10 +408,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         )
     }
-    
+
     private fun handleQuoteLike(quote: Quote, isLiked: Boolean) {
         val userId = currentUserId ?: return
-        
+
         if (isLiked) {
             FirebaseManager.likeQuote(userId, quote) { success ->
                 if (!success) {
@@ -434,10 +432,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         }
     }
-    
+
     private fun handleFollowUser(user: User, isFollowing: Boolean) {
         val userId = currentUserId ?: return
-        
+
         if (isFollowing) {
             FirebaseManager.followUser(userId, user.id) { success ->
                 if (success) {
@@ -460,7 +458,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun setupSearchView(searchView: SearchView) {
         // Set hint text
         searchView.queryHint = "Search quotes..."
-        
+
         // Set search view listeners
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
@@ -479,7 +477,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 return true
             }
         })
-        
+
         // When search view is closed, reload the current filter
         searchView.setOnCloseListener {
             loadFilteredQuotes()
@@ -492,14 +490,14 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             loadFilteredQuotes()
             return
         }
-        
+
         activity?.runOnUiThread {
             swipeRefreshLayout.isRefreshing = true
         }
-        
+
         // Normalize search terms
         val searchTerms = query.lowercase().trim().split(" ")
-        
+
         // Get all quotes and filter locally
         FirebaseManager.getAllQuotes(
             onSuccess = { allQuotes ->
@@ -508,16 +506,16 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     val quoteText = quote.quote.lowercase()
                     val authorName = quote.author.lowercase()
                     val tagsList = quote.tags.joinToString(" ").lowercase()
-                    
+
                     searchTerms.any { term ->
                         quoteText.contains(term) || 
                         authorName.contains(term) || 
                         tagsList.contains(term)
                     }
                 }
-                
+
                 updateQuotesFeed(filteredQuotes)
-                
+
                 // Show message if no results found
                 activity?.runOnUiThread {
                     if (filteredQuotes.isEmpty()) {
@@ -532,5 +530,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 }
             }
         )
+    }
+
+    // Implementation of OnUserProfileClickListener
+    override fun onUserProfileClicked(userId: String) {
+        val profileFragment = ProfileFragment.newInstance(userId)
+        // Use NavigationBarActivity's method to load fragment
+        (activity as? NavigationBarActivity)?.loadFragment(profileFragment, true)
     }
 }

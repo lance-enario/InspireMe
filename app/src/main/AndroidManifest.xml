@@ -68,6 +68,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".FollowersActivity"
+            android:label="Followers"
+            android:parentActivityName=".NavigationBarActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

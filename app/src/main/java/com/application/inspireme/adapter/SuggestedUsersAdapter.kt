@@ -7,12 +7,14 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.application.inspireme.R
+import com.application.inspireme.listeners.OnUserProfileClickListener
 import com.application.inspireme.model.User
 import de.hdodenhof.circleimageview.CircleImageView
 
 class SuggestedUsersAdapter(
     private val users: List<User>,
-    private val onFollowClicked: (User, Boolean) -> Unit
+    private val onFollowClicked: (User, Boolean) -> Unit,
+    private val onUserProfileClickListener: OnUserProfileClickListener
 ) : RecyclerView.Adapter<SuggestedUsersAdapter.UserViewHolder>() {
 
     class UserViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -39,6 +41,14 @@ class SuggestedUsersAdapter(
         // Set follow button click listener
         holder.followButton.setOnClickListener {
             onFollowClicked(user, true)
+        }
+
+        // Add click listeners for profile navigation
+        holder.profileImage.setOnClickListener {
+            onUserProfileClickListener.onUserProfileClicked(user.id)
+        }
+        holder.usernameText.setOnClickListener {
+            onUserProfileClickListener.onUserProfileClicked(user.id)
         }
     }
 

@@ -8,13 +8,15 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.application.inspireme.R
+import com.application.inspireme.listeners.OnUserProfileClickListener
 import com.application.inspireme.model.Quote
 import de.hdodenhof.circleimageview.CircleImageView
 
 class QuoteFeedAdapter(
     private val context: Context,
     private var quotes: List<Quote>,
-    private val onLikeClicked: (Quote, Boolean) -> Unit
+    private val onLikeClicked: (Quote, Boolean) -> Unit,
+    private val onUserProfileClickListener: OnUserProfileClickListener
 ) : RecyclerView.Adapter<QuoteFeedAdapter.QuoteViewHolder>() {
 
     // Map to track like status
@@ -35,36 +37,36 @@ class QuoteFeedAdapter(
     }
 
     override fun onBindViewHolder(holder: QuoteViewHolder, position: Int) {
-    val quote = quotes[position]
-    val isLiked = likeStatusMap[quote.id] ?: false
-    
-    // Set user profile image
-    holder.userProfileImage.setImageResource(R.drawable.profile)
-    
-    // Set username
-    holder.usernameText.text = quote.author
-    
-    // Set quote text
-    holder.quoteText.text = "${quote.quote}"
-    
-    // Set author text
-    holder.authorText.text = "— ${quote.author}"
-    
-    // If this is a discovery quote, show an indicator
-    if (quote.isDiscovery && holder.itemView.context.resources != null) {
-        holder.tagsText?.visibility = View.VISIBLE
-    } else {
-        holder.tagsText?.visibility = View.GONE
-    }
-    
-    // Set tags if available
-    if (quote.tags.isNotEmpty()) {
-        holder.tagsText.visibility = View.VISIBLE
-        holder.tagsText.text = quote.tags.joinToString(" ") { "#$it" }
-    } else {
-        holder.tagsText.visibility = View.GONE
-    }
+        val quote = quotes[position]
+        val isLiked = likeStatusMap[quote.id] ?: false
         
+        // Set user profile image
+        holder.userProfileImage.setImageResource(R.drawable.profile)
+        
+        // Set username
+        holder.usernameText.text = quote.author
+        
+        // Set quote text
+        holder.quoteText.text = "${quote.quote}"
+        
+        // Set author text
+        holder.authorText.text = "— ${quote.author}"
+        
+        // If this is a discovery quote, show an indicator
+        if (quote.isDiscovery && holder.itemView.context.resources != null) {
+            holder.tagsText?.visibility = View.VISIBLE
+        } else {
+            holder.tagsText?.visibility = View.GONE
+        }
+        
+        // Set tags if available
+        if (quote.tags.isNotEmpty()) {
+            holder.tagsText.visibility = View.VISIBLE
+            holder.tagsText.text = quote.tags.joinToString(" ") { "#$it" }
+        } else {
+            holder.tagsText.visibility = View.GONE
+        }
+            
         // Set like button
         holder.likeButton.setImageResource(
             if (isLiked) R.drawable.ic_liked 
@@ -80,6 +82,16 @@ class QuoteFeedAdapter(
                 else R.drawable.ic_like
             )
             onLikeClicked(quote, newLikeStatus)
+        }
+
+        // Add click listeners for profile navigation if quote.userId is valid
+        if (quote.userId.isNotEmpty()) {
+            holder.userProfileImage.setOnClickListener {
+                onUserProfileClickListener.onUserProfileClicked(quote.userId)
+            }
+            holder.usernameText.setOnClickListener {
+                onUserProfileClickListener.onUserProfileClicked(quote.userId)
+            }
         }
     }
 

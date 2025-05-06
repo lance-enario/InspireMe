@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -27,7 +28,8 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import de.hdodenhof.circleimageview.CircleImageView
 import android.app.AlertDialog
-
+import android.content.res.ColorStateList
+import androidx.core.content.ContextCompat
 import java.io.File
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
@@ -42,7 +44,11 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private lateinit var likesCountText: TextView
     private lateinit var postsCountText: TextView
     private lateinit var followersCountText: TextView
-    private var userId: String? = null
+    private lateinit var followButton: MaterialButton
+
+    private var loggedInUserId: String? = null
+    private var viewingUserId: String? = null
+    private var isOwnProfile: Boolean = false
 
     private val createdQuotes = mutableListOf<Quote>()
     private val likedQuotes = mutableListOf<Quote>()
@@ -66,12 +72,34 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         R.drawable.gorilla to "gorilla"
     )
 
+    companion object {
+        private const val ARG_USER_ID = "arg_user_id"
+
+        fun newInstance(userId: String? = null): ProfileFragment {
+            val fragment = ProfileFragment()
+            val args = Bundle()
+            userId?.let { args.putString(ARG_USER_ID, it) }
+            fragment.arguments = args
+            return fragment
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         sharedPreferences = requireContext().getSharedPreferences("UserProfile", Context.MODE_PRIVATE)
         val userAuthPrefs = requireContext().getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
-        userId = userAuthPrefs.getString("userId", null)
+        loggedInUserId = userAuthPrefs.getString("userId", null)
+
+        viewingUserId = arguments?.getString(ARG_USER_ID) ?: loggedInUserId
+
+        if (viewingUserId == null) {
+            Toast.makeText(requireContext(), "User not identified.", Toast.LENGTH_LONG).show()
+            parentFragmentManager.popBackStack()
+            return
+        }
+
+        isOwnProfile = viewingUserId == loggedInUserId && loggedInUserId != null
 
         // Initialize views
         bannerImageView = view.findViewById(R.id.banner_image)
@@ -84,42 +112,65 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         likesCountText = view.findViewById(R.id.likes_count)
         postsCountText = view.findViewById(R.id.posts_count)
         followersCountText = view.findViewById(R.id.followers_count)
+        followButton = view.findViewById(R.id.followButton)
 
-        // Set up the adapter with quote click handling
-        quoteAdapter = QuoteAdapter(requireContext(), emptyList()) { quote ->
-            // Only allow deleting if it's the user's own quote and we're on the "My Quotes" tab
-            if (tabLayout.selectedTabPosition == 0 && quote.userId == userId) {
-                showDeleteQuoteDialog(quote)
-            } else if (tabLayout.selectedTabPosition == 1) {
-                // For liked quotes tab, show unlike option
-                showUnlikeQuoteDialog(quote)
+        followersCountText.setOnClickListener {
+            viewingUserId?.let { userId ->
+                if (userId.isNotEmpty()) {
+                    val intent = Intent(requireContext(), FollowersActivity::class.java)
+                    intent.putExtra(FollowersActivity.EXTRA_USER_ID, userId)
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(requireContext(), "User ID is not available.", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
+        val editProfileButton = view.findViewById<MaterialButton>(R.id.editProfileButton)
+        val settingsButton = view.findViewById<ImageButton>(R.id.button_settings)
+
+        if (isOwnProfile) {
+            editProfileButton.visibility = View.VISIBLE
+            settingsButton.visibility = View.VISIBLE
+            followButton.visibility = View.GONE
+            editProfileButton.setOnClickListener {
+                val intent = Intent(requireContext(), ProfileSettingsActivity::class.java)
+                intent.putExtra("previous_fragment", "ProfileFragment")
+                startActivity(intent)
+            }
+            settingsButton.setOnClickListener {
+                val intent = Intent(requireContext(), SettingsPageActivity::class.java)
+                intent.putExtra("previous_fragment", "ProfileFragment")
+                startActivity(intent)
+            }
+        } else {
+            editProfileButton.visibility = View.GONE
+            settingsButton.visibility = View.GONE
+            if (loggedInUserId != null) {
+                followButton.visibility = View.VISIBLE
+                setupFollowButton(loggedInUserId!!, viewingUserId!!)
+            } else {
+                followButton.visibility = View.GONE
+            }
+        }
+
+        quoteAdapter = QuoteAdapter(requireContext(), emptyList()) { quote ->
+            val selectedTabIsMyQuotes = tabLayout.selectedTabPosition == 0
+            val selectedTabIsLikedQuotes = tabLayout.selectedTabPosition == 1
+
+            if (isOwnProfile) {
+                if (selectedTabIsMyQuotes && quote.userId == viewingUserId) {
+                    showDeleteQuoteDialog(quote)
+                } else if (selectedTabIsLikedQuotes) {
+                    showUnlikeQuoteDialog(quote)
+                }
+            }
+        }
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = quoteAdapter
 
-        // Check if we already have cached data
-        if (UserProfileCache.isDataLoaded) {
-            displayCachedData()
-        } else {
-            if (userId != null) {
-                loadUserDataFromFirebase(userId!!)
-            } else {
-                loadSavedData()
-            }
-        }
+        loadDataForProfile(viewingUserId!!)
 
-        // Load quotes
-        if (userId != null) {
-            loadUserQuotes(userId!!)
-            loadLikedQuotes(userId!!)
-            loadUserStats(userId!!)
-        } else {
-            updateStatsUI(0, 0, 0)
-        }
-
-        // Set up the tab selection listener
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 when (tab.position) {
@@ -131,18 +182,114 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             override fun onTabUnselected(tab: TabLayout.Tab) {}
             override fun onTabReselected(tab: TabLayout.Tab) {}
         })
+    }
 
-        // Set up button listeners
-        view.findViewById<ImageButton>(R.id.button_settings).setOnClickListener {
-            val intent = Intent(requireContext(), SettingsPageActivity::class.java)
-            intent.putExtra("previous_fragment", "ProfileFragment")
-            startActivity(intent)
+    private fun loadDataForProfile(userIdToLoad: String) {
+        loadUserDataFromFirebase(userIdToLoad)
+        loadUserQuotes(userIdToLoad)
+        loadLikedQuotes(userIdToLoad)
+        loadUserStats(userIdToLoad)
+    }
+
+    private fun loadUserDataFromFirebase(userIdToDisplay: String) {
+        if (isOwnProfile && UserProfileCache.isDataLoaded && (System.currentTimeMillis() - UserProfileCache.lastUpdateTime < 3600000)) {
+            displayCachedData()
+            return
         }
 
-        view.findViewById<MaterialButton>(R.id.editProfileButton).setOnClickListener {
-            val intent = Intent(requireContext(), ProfileSettingsActivity::class.java)
-            intent.putExtra("previous_fragment", "ProfileFragment")
-            startActivity(intent)
+        FirebaseManager.getUserData(userIdToDisplay,
+            onSuccess = { user ->
+                activity?.runOnUiThread {
+                    usernameTextView.text = user.username
+                    bioTextView.text = user.bio
+
+                    bannerImageView.setImageResource(UserProfileCache.bannerImages[user.bannerId] ?: R.drawable.banner3)
+                    profilePic.setImageResource(UserProfileCache.profileImages[user.profileId] ?: R.drawable.capybara)
+
+                    if (isOwnProfile) {
+                        UserProfileCache.username = user.username
+                        UserProfileCache.bio = user.bio
+                        UserProfileCache.bannerId = user.bannerId
+                        UserProfileCache.profileId = user.profileId
+                        UserProfileCache.isDataLoaded = true
+                        UserProfileCache.lastUpdateTime = System.currentTimeMillis()
+                    }
+                }
+            },
+            onFailure = { error ->
+                activity?.runOnUiThread {
+                    Toast.makeText(requireContext(), "Failed to load user data: $error", Toast.LENGTH_SHORT).show()
+                    if (isOwnProfile) {
+                        loadSavedData()
+                    } else {
+                        usernameTextView.text = "User"
+                        bioTextView.text = "Could not load bio."
+                        bannerImageView.setImageResource(R.drawable.banner3)
+                        profilePic.setImageResource(R.drawable.profile)
+                    }
+                }
+            }
+        )
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewingUserId?.let {
+            loadDataForProfile(it)
+            if (!isOwnProfile && loggedInUserId != null) {
+                setupFollowButton(loggedInUserId!!, it)
+            }
+        }
+    }
+
+    private fun setupFollowButton(currentLoggedInUserId: String, targetProfileUserId: String) {
+        FirebaseManager.checkIfFollowing(currentLoggedInUserId, targetProfileUserId) { isFollowing ->
+            activity?.runOnUiThread {
+                updateFollowButtonState(isFollowing)
+                followButton.setOnClickListener {
+                    val currentlyFollowing = followButton.text == "Unfollow"
+                    if (currentlyFollowing) {
+                        FirebaseManager.unfollowUser(currentLoggedInUserId, targetProfileUserId) { success ->
+                            if (success) {
+                                updateFollowButtonState(false)
+                                loadUserStats(targetProfileUserId)
+                            } else {
+                                Toast.makeText(context, "Failed to unfollow", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    } else {
+                        FirebaseManager.followUser(currentLoggedInUserId, targetProfileUserId) { success ->
+                            if (success) {
+                                updateFollowButtonState(true)
+                                loadUserStats(targetProfileUserId)
+                            } else {
+                                Toast.makeText(context, "Failed to follow", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateFollowButtonState(isFollowing: Boolean) {
+        val greenColor = ContextCompat.getColor(requireContext(), R.color.green)
+        val whiteColor = ContextCompat.getColor(requireContext(), android.R.color.white)
+
+        followButton.backgroundTintList = ColorStateList.valueOf(whiteColor)
+        followButton.strokeColor = ColorStateList.valueOf(greenColor)
+
+        val strokeWidthDp = 2
+        followButton.strokeWidth = (strokeWidthDp * resources.displayMetrics.density).toInt()
+
+        if (isFollowing) {
+            followButton.text = "Unfollow"
+            followButton.setTextColor(greenColor)
+            followButton.backgroundTintList = ColorStateList.valueOf(whiteColor)
+        } else {
+            followButton.text = "Follow"
+            followButton.setTextColor(whiteColor)
+            followButton.backgroundTintList = ColorStateList.valueOf(greenColor)
         }
     }
 
@@ -235,82 +382,21 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         }
     }
 
-    fun refreshStats() {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid
-        if (userId != null) {
-            loadUserStats(userId)
-        }
-    }
-
-    fun loadUserProfile(userId: String) {
-        loadUserStats(userId)
-    }
-
     private fun displayCachedData() {
         usernameTextView.text = UserProfileCache.username
         bioTextView.text = UserProfileCache.bio
 
-        // Set banner image based on stored ID
         bannerImages.firstOrNull { it.second == UserProfileCache.bannerId }?.let {
             bannerImageView.setImageResource(it.first)
         } ?: run {
             bannerImageView.setImageResource(R.drawable.banner3)
         }
 
-        // Set profile image based on stored ID
         profileImages.firstOrNull { it.second == UserProfileCache.profileId }?.let {
             profilePic.setImageResource(it.first)
         } ?: run {
             profilePic.setImageResource(R.drawable.profile)
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        UserProfileCache.isDataLoaded = false // Force refresh
-        val userAuthPrefs = requireContext().getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
-        val userId = userAuthPrefs.getString("userId", null)
-
-        if (userId != null) {
-            loadUserDataFromFirebase(userId)
-        } else {
-            loadSavedData()
-        }
-
-        // Refresh stats and quotes
-        userId?.let {
-            loadUserQuotes(it)
-            loadLikedQuotes(it)
-            loadUserStats(it)
-        }
-    }
-
-    private fun loadUserDataFromFirebase(userId: String) {
-        val database = FirebaseDatabase.getInstance()
-        val userRef = database.getReference("users").child(userId)
-
-        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    UserProfileCache.username = snapshot.child("username").getValue(String::class.java) ?: "Default Name"
-                    UserProfileCache.bio = snapshot.child("bio").getValue(String::class.java) ?: "No bio available"
-                    UserProfileCache.bannerId = snapshot.child("bannerId").getValue(String::class.java) ?: "banner3"
-                    UserProfileCache.profileId = snapshot.child("profileId").getValue(String::class.java) ?: "profile1"
-
-                    UserProfileCache.isDataLoaded = true
-                    UserProfileCache.lastUpdateTime = System.currentTimeMillis()
-
-                    displayCachedData()
-                } else {
-                    loadSavedData()
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(requireContext(), "Failed to load profile: ${error.message}", Toast.LENGTH_SHORT).show()
-                loadSavedData()
-            }
-        })
     }
 
     private fun loadSavedData() {
@@ -323,29 +409,6 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         displayCachedData()
     }
 
-    private fun loadImageFromUri(uri: String, imageView: ImageView) {
-        try {
-            val file = File(uri)
-            if (file.exists()) {
-                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                imageView.setImageBitmap(bitmap)
-                if (imageView == bannerImageView) {
-                    imageView.clearColorFilter()
-                }
-            }
-        } catch (e: Exception) {
-            if (imageView == bannerImageView) {
-                imageView.setImageResource(R.drawable.banner3)
-                imageView.setColorFilter(requireContext().getColor(R.color.green))
-            } else {
-                imageView.setImageResource(R.drawable.profile)
-            }
-        }
-    }
-
-    /**
-     * Shows a confirmation dialog for deleting a quote
-     */
     private fun showDeleteQuoteDialog(quote: Quote) {
         AlertDialog.Builder(requireContext())
             .setTitle("Delete Quote")
@@ -357,9 +420,6 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             .show()
     }
 
-    /**
-     * Shows a confirmation dialog for unliking a quote
-     */
     private fun showUnlikeQuoteDialog(quote: Quote) {
         AlertDialog.Builder(requireContext())
             .setTitle("Unlike Quote")
@@ -371,41 +431,33 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             .show()
     }
 
-    /**
-     * Deletes a quote from Firebase and updates the UI
-     */
     private fun deleteQuote(quote: Quote) {
-        userId?.let { uid ->
-            // Show loading indicator
+        loggedInUserId?.let { uid ->
             val loadingSnackbar = Snackbar.make(requireView(), "Deleting quote...", Snackbar.LENGTH_INDEFINITE)
             loadingSnackbar.show()
 
-            // Delete from main quotes collection and user's quotes
             FirebaseManager.deleteQuote(quote.id, uid) { success ->
                 activity?.runOnUiThread {
                     loadingSnackbar.dismiss()
-                    
+
                     if (success) {
-                        // Remove from local list and update UI
                         val position = createdQuotes.indexOfFirst { it.id == quote.id }
                         if (position != -1) {
                             createdQuotes.removeAt(position)
                             displayQuotes(createdQuotes)
-                            
-                            // Update stats
+
                             val currentPosts = postsCountText.text.toString()
                             val postsCount = if (currentPosts.contains("K") || currentPosts.contains("M")) {
-                                // If using K/M notation, reload stats from server
                                 loadUserStats(uid)
-                                -1 // dummy value
+                                -1
                             } else {
                                 currentPosts.toInt() - 1
                             }
-                            
+
                             if (postsCount >= 0) {
                                 postsCountText.text = formatCount(postsCount)
                             }
-                            
+
                             Snackbar.make(requireView(), "Quote deleted successfully", Snackbar.LENGTH_SHORT).show()
                         }
                     } else {
@@ -416,40 +468,33 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         }
     }
 
-    /**
-     * Unlikes a quote and updates the UI
-     */
     private fun unlikeQuote(quote: Quote) {
-        userId?.let { uid ->
-            // Show loading indicator
+        loggedInUserId?.let { uid ->
             val loadingSnackbar = Snackbar.make(requireView(), "Removing from liked quotes...", Snackbar.LENGTH_INDEFINITE)
             loadingSnackbar.show()
-            
+
             FirebaseManager.unlikeQuote(uid, quote.id) { success ->
                 activity?.runOnUiThread {
                     loadingSnackbar.dismiss()
-                    
+
                     if (success) {
-                        // Remove from local list and update UI
                         val position = likedQuotes.indexOfFirst { it.id == quote.id }
                         if (position != -1) {
                             likedQuotes.removeAt(position)
                             displayQuotes(likedQuotes)
-                            
-                            // Update likes count
+
                             val currentLikes = likesCountText.text.toString()
                             val likesCount = if (currentLikes.contains("K") || currentLikes.contains("M")) {
-                                // If using K/M notation, reload stats from server
                                 loadUserStats(uid)
-                                -1 // dummy value
+                                -1
                             } else {
                                 currentLikes.toInt() - 1
                             }
-                            
+
                             if (likesCount >= 0) {
                                 likesCountText.text = formatCount(likesCount)
                             }
-                            
+
                             Snackbar.make(requireView(), "Quote removed from likes", Snackbar.LENGTH_SHORT).show()
                         }
                     } else {

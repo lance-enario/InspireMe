@@ -40,12 +40,23 @@ object FirebaseManager {
         usersRef.child(userId).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
-                    val user = snapshot.getValue(User::class.java)
-                    if (user != null) {
-                        onSuccess(user)
-                    } else {
-                        onFailure("Failed to parse user data")
-                    }
+                    val email = snapshot.child("email").getValue(String::class.java) ?: ""
+                    val username = snapshot.child("username").getValue(String::class.java) ?: ""
+                    val bio = snapshot.child("bio").getValue(String::class.java) ?: "No bio available"
+                    val createdAt = snapshot.child("createdAt").getValue(Long::class.java) ?: 0L
+                    val bannerId = snapshot.child("bannerId").getValue(String::class.java) ?: "banner3"
+                    val profileId = snapshot.child("profileId").getValue(String::class.java) ?: "capybara"
+
+                    val user = User(
+                        id = userId, 
+                        email = email, 
+                        username = username, 
+                        bio = bio, 
+                        createdAt = createdAt, 
+                        bannerId = bannerId, 
+                        profileId = profileId
+                    )
+                    onSuccess(user)
                 } else {
                     onFailure("User not found")
                 }
@@ -370,6 +381,26 @@ object FirebaseManager {
                 }
             })
     }
+
+    fun getFollowerIds(userId: String, onSuccess: (List<String>) -> Unit, onFailure: (String) -> Unit) {
+        val followersRef = database.getReference("followers").child(userId)
+        followersRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val followerIds = mutableListOf<String>()
+                if (snapshot.exists()) {
+                    for (followerSnapshot in snapshot.children) {
+                        followerSnapshot.key?.let { followerIds.add(it) }
+                    }
+                }
+                onSuccess(followerIds)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                onFailure(error.message)
+            }
+        })
+    }
+
     fun getFollowing(userId: String, onSuccess: (List<String>) -> Unit, onFailure: (String) -> Unit) {
         followingRef.child(userId)
             .addListenerForSingleValueEvent(object : ValueEventListener {
@@ -557,10 +588,22 @@ object FirebaseManager {
                 
                 for (userSnapshot in snapshot.children) {
                     val userId = userSnapshot.key ?: continue
+                    val email = userSnapshot.child("email").getValue(String::class.java) ?: ""
                     val username = userSnapshot.child("username").getValue(String::class.java) ?: continue
-                    val bio = userSnapshot.child("bio").getValue(String::class.java) ?: ""
+                    val bio = userSnapshot.child("bio").getValue(String::class.java) ?: "No bio available"
+                    val createdAt = userSnapshot.child("createdAt").getValue(Long::class.java) ?: 0L
+                    val bannerId = userSnapshot.child("bannerId").getValue(String::class.java) ?: "banner3"
+                    val profileId = userSnapshot.child("profileId").getValue(String::class.java) ?: "capybara"
                     
-                    users.add(User(id = userId, username = username, bio = bio))
+                    users.add(User(
+                        id = userId, 
+                        email = email, 
+                        username = username, 
+                        bio = bio, 
+                        createdAt = createdAt, 
+                        bannerId = bannerId, 
+                        profileId = profileId
+                    ))
                 }
                 
                 onComplete(users)
