@@ -145,9 +145,6 @@ class InspireMeWidget : AppWidgetProvider() {
 //            val creatorName = quote.createdBy?.name ?: context.getString(R.string.default_creator_name)
 //            views.setTextViewText(R.id.widget_creator_name, creatorName)
 
-            // Set creator profile image (use default if null)
-            views.setImageViewResource(R.id.widget_creator_profile, R.drawable.personfileld)
-
             // Set like button appearance
             val likeIcon = if (isLiked) R.drawable.ic_liked else R.drawable.ic_like
             views.setImageViewResource(R.id.like_icon, likeIcon)
@@ -222,7 +219,6 @@ class InspireMeWidget : AppWidgetProvider() {
                 context.getString(R.string.no_quotes_available))
             views.setTextViewText(R.id.widget_author, "")
             views.setTextViewText(R.id.widget_creator_name, "")
-            views.setImageViewResource(R.id.widget_creator_profile, R.drawable.personfileld)
 
             views.setImageViewResource(R.id.like_icon, R.drawable.ic_like)
 
