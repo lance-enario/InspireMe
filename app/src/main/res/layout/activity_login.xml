@@ -28,9 +28,9 @@
             android:layout_gravity="center"
             android:layout_marginTop="50dp"
             android:layout_marginBottom="5dp"
-            android:background="@drawable/circularborder"
+            android:background="@drawable/circle_border"
             android:clipToOutline="true"
-            android:src="@drawable/logo2" />
+            android:src="@drawable/app_logo" />
 
         <TextView
             android:layout_width="wrap_content"
