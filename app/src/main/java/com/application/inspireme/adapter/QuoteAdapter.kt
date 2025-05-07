@@ -1,4 +1,4 @@
-package com.application.inspireme.adapters
+package com.application.inspireme.adapter
 
 import android.content.Context
 import android.view.LayoutInflater

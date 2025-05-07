@@ -39,7 +39,6 @@ class HomeFragment : Fragment(R.layout.fragment_home), OnUserProfileClickListene
         super.onViewCreated(view, savedInstanceState)
         currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
-        // Setup search functionality
         val searchView = view.findViewById<SearchView>(R.id.searchView)
         setupSearchView(searchView)
 
@@ -47,17 +46,14 @@ class HomeFragment : Fragment(R.layout.fragment_home), OnUserProfileClickListene
         suggestedUsersRecyclerView = view.findViewById(R.id.suggested_users_recycler_view)
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout)
 
-        // Set up quotes feed
         quotesRecyclerView.layoutManager = LinearLayoutManager(context)
         quoteFeedAdapter = QuoteFeedAdapter(requireContext(), quotes, this::handleQuoteLike, this)
         quotesRecyclerView.adapter = quoteFeedAdapter
 
-        // Set up suggested users
         suggestedUsersRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         suggestedUsersAdapter = SuggestedUsersAdapter(suggestedUsers, this::handleFollowUser, this)
         suggestedUsersRecyclerView.adapter = suggestedUsersAdapter
 
-        // Set up filter buttons
         setupFilterButtons(view)
 
         swipeRefreshLayout.setOnRefreshListener {
@@ -84,7 +80,6 @@ class HomeFragment : Fragment(R.layout.fragment_home), OnUserProfileClickListene
     private var filterButtons = mutableListOf<Button>()
 
     private fun setupFilterButtons(view: View) {
-        // Find all filter buttons in the horizontal scroll view
         val buttonForYou = view.findViewById<Button>(R.id.btn_for_you)
         val buttonRecent = view.findViewById<Button>(R.id.btn_recent)
         val buttonTrending = view.findViewById<Button>(R.id.btn_trending)
@@ -92,7 +87,6 @@ class HomeFragment : Fragment(R.layout.fragment_home), OnUserProfileClickListene
 
         filterButtons = mutableListOf(buttonForYou, buttonRecent, buttonTrending, buttonPopular)
 
-        // Set up click listeners
         buttonForYou.setOnClickListener {
             selectFilter(QuoteFilter.FOR_YOU)
         }
@@ -109,7 +103,6 @@ class HomeFragment : Fragment(R.layout.fragment_home), OnUserProfileClickListene
             selectFilter(QuoteFilter.POPULAR)
         }
 
-        // Highlight the default selected button
         updateButtonStyles()
     }
 

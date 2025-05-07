@@ -76,7 +76,6 @@ dependencies {
 
     // CircleImageView (this is used in the profile and profile settings)
     implementation(libs.de.hdodenhof.circleimageview)
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

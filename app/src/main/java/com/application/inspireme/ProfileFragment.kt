@@ -14,8 +14,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.application.inspireme.api.FirebaseManager
 import com.application.inspireme.data.UserProfileCache
-import com.application.inspireme.adapters.QuoteAdapter
+import com.application.inspireme.adapter.QuoteAdapter
+import com.application.inspireme.adapter.FollowerAdapter
 import com.application.inspireme.model.Quote
+import com.application.inspireme.model.User
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
@@ -96,7 +98,6 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         isOwnProfile = viewingUserId == loggedInUserId && loggedInUserId != null
 
-        // Initialize views
         bannerImageView = view.findViewById(R.id.banner_image)
         profilePic = view.findViewById(R.id.profile_picture)
         usernameTextView = view.findViewById(R.id.username_text)
@@ -112,9 +113,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         followersCountText.setOnClickListener {
             viewingUserId?.let { userId ->
                 if (userId.isNotEmpty()) {
-                    val intent = Intent(requireContext(), FollowersActivity::class.java)
-                    intent.putExtra(FollowersActivity.EXTRA_USER_ID, userId)
-                    startActivity(intent)
+                    showFollowersDialog(userId)
                 } else {
                     Toast.makeText(requireContext(), "User ID is not available.", Toast.LENGTH_SHORT).show()
                 }
@@ -179,6 +178,84 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         })
     }
 
+    private fun showFollowersDialog(userId: String) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_followers, null)
+        val recyclerView: RecyclerView = dialogView.findViewById(R.id.recyclerView_followers_dialog)
+        val noFollowersText: TextView = dialogView.findViewById(R.id.textView_no_followers_dialog)
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setTitle("Followers")
+            .setView(dialogView)
+            .setNegativeButton("Close", null)
+            .create()
+
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        val followersList = mutableListOf<User>()
+        val followerAdapter = FollowerAdapter(requireContext(), followersList) { follower ->
+            dialog.dismiss()
+            viewingUserId = follower.id
+            loadDataForProfile(follower.id)
+            tabLayout.getTabAt(0)?.select()
+
+            if (follower.id == loggedInUserId) {
+                isOwnProfile = true
+                followButton.visibility = View.GONE
+                view?.findViewById<MaterialButton>(R.id.editProfileButton)?.visibility = View.VISIBLE
+                view?.findViewById<ImageButton>(R.id.button_settings)?.visibility = View.VISIBLE
+            } else {
+                isOwnProfile = false
+                if (loggedInUserId != null) {
+                    followButton.visibility = View.VISIBLE
+                    setupFollowButton(loggedInUserId!!, follower.id)
+                }
+                view?.findViewById<MaterialButton>(R.id.editProfileButton)?.visibility = View.GONE
+                view?.findViewById<ImageButton>(R.id.button_settings)?.visibility = View.GONE
+            }
+        }
+        recyclerView.adapter = followerAdapter
+
+        FirebaseManager.getFollowerIds(userId,
+            onSuccess = { followerIds ->
+                if (followerIds.isEmpty()) {
+                    noFollowersText.visibility = View.VISIBLE
+                    recyclerView.visibility = View.GONE
+                    return@getFollowerIds
+                }
+
+                noFollowersText.visibility = View.GONE
+                recyclerView.visibility = View.VISIBLE
+
+                val totalFollowers = followerIds.size
+                var loadedCount = 0
+
+                followerIds.forEach { followerId ->
+                    FirebaseManager.getUserData(followerId,
+                        onSuccess = { user ->
+                            followersList.add(user)
+                            loadedCount++
+                            if (loadedCount == totalFollowers) {
+                                followerAdapter.updateFollowers(followersList.sortedBy { it.username.toLowerCase() })
+                            }
+                        },
+                        onFailure = { error ->
+                            loadedCount++
+                            if (loadedCount == totalFollowers) {
+                                followerAdapter.updateFollowers(followersList.sortedBy { it.username.toLowerCase() })
+                            }
+                        }
+                    )
+                }
+            },
+            onFailure = { error ->
+                noFollowersText.visibility = View.VISIBLE
+                recyclerView.visibility = View.GONE
+                Toast.makeText(context, "Failed to load followers: $error", Toast.LENGTH_SHORT).show()
+            }
+        )
+
+        dialog.show()
+    }
+
     private fun loadDataForProfile(userIdToLoad: String) {
         loadUserDataFromFirebase(userIdToLoad)
         loadUserQuotes(userIdToLoad)
@@ -193,14 +270,12 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                     usernameTextView.text = user.username
                     bioTextView.text = user.bio
 
-                    // Load banner and profile pic from Firebase data
                     val bannerResId = UserProfileCache.bannerImages[user.bannerId] ?: R.drawable.banner3
                     val profileResId = UserProfileCache.profileImages[user.profileId] ?: R.drawable.capybara
 
                     bannerImageView.setImageResource(bannerResId)
                     profilePic.setImageResource(profileResId)
 
-                    // Update cache if it's own profile
                     if (isOwnProfile) {
                         UserProfileCache.username = user.username
                         UserProfileCache.bio = user.bio
@@ -214,7 +289,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             onFailure = { error ->
                 activity?.runOnUiThread {
                     Toast.makeText(requireContext(), "Failed to load user data: $error", Toast.LENGTH_SHORT).show()
-                    // Set default images
+
                     bannerImageView.setImageResource(R.drawable.banner3)
                     profilePic.setImageResource(R.drawable.capybara)
                     usernameTextView.text = "User"
@@ -389,16 +464,6 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         } ?: run {
             profilePic.setImageResource(R.drawable.profile)
         }
-    }
-
-    private fun loadSavedData() {
-        UserProfileCache.bannerId = sharedPreferences.getString("bannerId", "banner3") ?: "banner3"
-        UserProfileCache.profileId = sharedPreferences.getString("profileId", "profile1") ?: "profile1"
-        UserProfileCache.username = sharedPreferences.getString("username", "Default Name") ?: "Default Name"
-        UserProfileCache.bio = sharedPreferences.getString("bio", "No bio available") ?: "No bio available"
-        UserProfileCache.isDataLoaded = true
-        UserProfileCache.lastUpdateTime = System.currentTimeMillis()
-        displayCachedData()
     }
 
     private fun showDeleteQuoteDialog(quote: Quote) {

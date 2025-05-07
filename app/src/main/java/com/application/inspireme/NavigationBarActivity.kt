@@ -26,9 +26,8 @@ class NavigationBarActivity : AppCompatActivity() {
         setContentView(R.layout.navigation_bar)
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
-        loadFragment(HomeFragment()) // Load the default fragment
+        loadFragment(HomeFragment())
 
-        // Set label visibility to show only when selected
         bottomNavigationView.labelVisibilityMode = NavigationBarView.LABEL_VISIBILITY_UNLABELED
 
         bottomNavigationView.setOnNavigationItemSelectedListener { item ->
@@ -73,7 +72,6 @@ class NavigationBarActivity : AppCompatActivity() {
             super.onBackPressed()
         }
     }
-
     companion object {
         const val EXTRA_FRAGMENT_TO_LOAD = "fragment_to_load"
         const val EXTRA_USER_ID = "user_id"
