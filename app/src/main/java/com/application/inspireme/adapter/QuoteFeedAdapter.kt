@@ -44,47 +44,34 @@ class QuoteFeedAdapter(
         val quote = quotes[position]
         val isLiked = likeStatusMap[quote.id] ?: false
 
-        // Set user profile image - check cache first
+        // Set user profile image and username
         if (quote.userId.isNotEmpty()) {
-            val cachedProfile = userProfileCache[quote.userId]
-            if (cachedProfile != null) {
-                holder.userProfileImage.setImageResource(cachedProfile)
-            } else {
-                // Default image while loading
-                holder.userProfileImage.setImageResource(R.drawable.capybara)
+            // Fetch user data from Firebase to get username and profileId
+            FirebaseManager.getUserData(quote.userId,
+                onSuccess = { user ->
+                    holder.usernameText.text = user.username
 
-                // Fetch user data from Firebase to get profileId
-                FirebaseManager.getUserData(quote.userId,
-                    onSuccess = { user ->
-                        val profileResId = UserProfileCache.profileImages[user.profileId] ?: R.drawable.capybara
-                        userProfileCache[quote.userId] = profileResId
-                        holder.userProfileImage.setImageResource(profileResId)
-                        holder.usernameText.text = user.username
-                    },
-                    onFailure = { error ->
-                        holder.userProfileImage.setImageResource(R.drawable.capybara)
-                        holder.usernameText.text = "User"
-                    }
-                )
-            }
+                    // Set profile image from cache or default
+                    val profileResId = UserProfileCache.profileImages[user.profileId] ?: R.drawable.capybara
+                    holder.userProfileImage.setImageResource(profileResId)
+
+                    // Cache the profile image for future use
+                    userProfileCache[quote.userId] = profileResId
+                },
+                onFailure = { error ->
+                    holder.userProfileImage.setImageResource(R.drawable.capybara)
+                    holder.usernameText.text = "User"
+                }
+            )
         } else {
-            // For quotes without userId (API quotes), use default image
+            // For quotes without userId (API quotes), use default image and author as username
             holder.userProfileImage.setImageResource(R.drawable.capybara)
             holder.usernameText.text = quote.author
         }
 
-        // Set quote text
+        // Rest of your existing code...
         holder.quoteText.text = "${quote.quote}"
-
-        // Set author text (for API quotes)
         holder.authorText.text = "— ${quote.author}"
-
-        // If this is a discovery quote, show an indicator
-        if (quote.isDiscovery && holder.itemView.context.resources != null) {
-            holder.tagsText?.visibility = View.VISIBLE
-        } else {
-            holder.tagsText?.visibility = View.GONE
-        }
 
         // Set tags if available
         if (quote.tags.isNotEmpty()) {
