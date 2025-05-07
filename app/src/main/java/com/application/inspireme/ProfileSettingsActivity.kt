@@ -14,9 +14,11 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.application.inspireme.api.FirebaseManager
 import com.application.inspireme.data.UserProfileCache
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 
 class ProfileSettingsActivity : AppCompatActivity() {
@@ -164,28 +166,12 @@ class ProfileSettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadSavedData() {
-        selectedBannerId = sharedPreferences.getString("bannerId", "banner3") ?: "banner3"
-        selectedProfileId = sharedPreferences.getString("profileId", "capybara") ?: "capybara"
-
-        // Update cache from SharedPreferences
-        UserProfileCache.bannerId = selectedBannerId
-        UserProfileCache.profileId = selectedProfileId
-        UserProfileCache.username = sharedPreferences.getString("username", "") ?: ""
-        UserProfileCache.bio = sharedPreferences.getString("bio", "") ?: ""
-
-        // Load images
-        bannerImageView.setImageResource(UserProfileCache.bannerImages[selectedBannerId] ?: R.drawable.banner3)
-        profilePic.setImageResource(UserProfileCache.profileImages[selectedProfileId] ?: R.drawable.capybara)
-        usernameEditText.setText(UserProfileCache.username)
-        bioEditText.setText(UserProfileCache.bio)
-    }
-
+    // Remove all SharedPreferences references and modify saveData()
     private fun saveData() {
         val username = usernameEditText.text.toString()
         val bio = bioEditText.text.toString()
 
-        // Update local cache immediately
+        // Update local cache
         UserProfileCache.username = username
         UserProfileCache.bio = bio
         UserProfileCache.bannerId = selectedBannerId
@@ -193,39 +179,58 @@ class ProfileSettingsActivity : AppCompatActivity() {
         UserProfileCache.isDataLoaded = true
         UserProfileCache.lastUpdateTime = System.currentTimeMillis()
 
-        // Save to SharedPreferences
-        sharedPreferences.edit().apply {
-            putString("bannerId", selectedBannerId)
-            putString("profileId", selectedProfileId)
-            putString("username", username)
-            putString("bio", bio)
-            putLong("lastModified", System.currentTimeMillis())
-            apply() // Using apply() for async save
-        }
-
         // Save to Firebase
-        val userId = getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
-            .getString("userId", null)
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
 
         userId?.let {
-            FirebaseDatabase.getInstance().getReference("users").child(it).updateChildren(
-                mapOf(
-                    "username" to username,
-                    "bio" to bio,
-                    "bannerId" to selectedBannerId,
-                    "profileId" to selectedProfileId
-                )
-            ).addOnCompleteListener { task ->
-                if (task.isSuccessful) {
+            val updates = mapOf(
+                "username" to username,
+                "bio" to bio,
+                "bannerId" to selectedBannerId,
+                "profileId" to selectedProfileId
+            )
+
+            FirebaseManager.updateUserProfile(it, updates) { success ->
+                if (success) {
                     Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
                     finish()
                 } else {
-                    Toast.makeText(this, "Failed to update profile: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failed to update profile", Toast.LENGTH_SHORT).show()
                 }
             }
         } ?: run {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
             finish()
         }
+    }
+
+    // Modify loadSavedData() to load from Firebase
+    private fun loadSavedData() {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        FirebaseManager.getUserData(userId,
+            onSuccess = { user ->
+                selectedBannerId = user.bannerId
+                selectedProfileId = user.profileId
+
+                // Update UI
+                bannerImageView.setImageResource(UserProfileCache.bannerImages[selectedBannerId] ?: R.drawable.banner3)
+                profilePic.setImageResource(UserProfileCache.profileImages[selectedProfileId] ?: R.drawable.capybara)
+                usernameEditText.setText(user.username)
+                bioEditText.setText(user.bio)
+
+                // Update cache
+                UserProfileCache.username = user.username
+                UserProfileCache.bio = user.bio
+                UserProfileCache.bannerId = user.bannerId
+                UserProfileCache.profileId = user.profileId
+            },
+            onFailure = { error ->
+                Toast.makeText(this, "Failed to load profile data", Toast.LENGTH_SHORT).show()
+                // Set defaults
+                bannerImageView.setImageResource(R.drawable.banner3)
+                profilePic.setImageResource(R.drawable.capybara)
+            }
+        )
     }
 }

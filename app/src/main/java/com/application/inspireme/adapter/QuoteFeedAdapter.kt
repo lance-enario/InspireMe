@@ -8,6 +8,8 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.application.inspireme.R
+import com.application.inspireme.api.FirebaseManager
+import com.application.inspireme.data.UserProfileCache
 import com.application.inspireme.listeners.OnUserProfileClickListener
 import com.application.inspireme.model.Quote
 import de.hdodenhof.circleimageview.CircleImageView
@@ -21,7 +23,9 @@ class QuoteFeedAdapter(
 
     // Map to track like status
     private val likeStatusMap = mutableMapOf<String, Boolean>()
-    
+    // Cache for user profile pictures to avoid repeated Firebase calls
+    private val userProfileCache = mutableMapOf<String, Int>()
+
     class QuoteViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val userProfileImage: CircleImageView = view.findViewById(R.id.user_profile_image)
         val usernameText: TextView = view.findViewById(R.id.username_text)
@@ -39,26 +43,49 @@ class QuoteFeedAdapter(
     override fun onBindViewHolder(holder: QuoteViewHolder, position: Int) {
         val quote = quotes[position]
         val isLiked = likeStatusMap[quote.id] ?: false
-        
-        // Set user profile image
-        holder.userProfileImage.setImageResource(R.drawable.profile)
-        
-        // Set username
-        holder.usernameText.text = quote.author
-        
+
+        // Set user profile image - check cache first
+        if (quote.userId.isNotEmpty()) {
+            val cachedProfile = userProfileCache[quote.userId]
+            if (cachedProfile != null) {
+                holder.userProfileImage.setImageResource(cachedProfile)
+            } else {
+                // Default image while loading
+                holder.userProfileImage.setImageResource(R.drawable.capybara)
+
+                // Fetch user data from Firebase to get profileId
+                FirebaseManager.getUserData(quote.userId,
+                    onSuccess = { user ->
+                        val profileResId = UserProfileCache.profileImages[user.profileId] ?: R.drawable.capybara
+                        userProfileCache[quote.userId] = profileResId
+                        holder.userProfileImage.setImageResource(profileResId)
+                        holder.usernameText.text = user.username
+                    },
+                    onFailure = { error ->
+                        holder.userProfileImage.setImageResource(R.drawable.capybara)
+                        holder.usernameText.text = "User"
+                    }
+                )
+            }
+        } else {
+            // For quotes without userId (API quotes), use default image
+            holder.userProfileImage.setImageResource(R.drawable.capybara)
+            holder.usernameText.text = quote.author
+        }
+
         // Set quote text
         holder.quoteText.text = "${quote.quote}"
-        
-        // Set author text
+
+        // Set author text (for API quotes)
         holder.authorText.text = "— ${quote.author}"
-        
+
         // If this is a discovery quote, show an indicator
         if (quote.isDiscovery && holder.itemView.context.resources != null) {
             holder.tagsText?.visibility = View.VISIBLE
         } else {
             holder.tagsText?.visibility = View.GONE
         }
-        
+
         // Set tags if available
         if (quote.tags.isNotEmpty()) {
             holder.tagsText.visibility = View.VISIBLE
@@ -66,19 +93,19 @@ class QuoteFeedAdapter(
         } else {
             holder.tagsText.visibility = View.GONE
         }
-            
+
         // Set like button
         holder.likeButton.setImageResource(
-            if (isLiked) R.drawable.ic_liked 
+            if (isLiked) R.drawable.ic_liked
             else R.drawable.ic_like
         )
-        
+
         // Set like button click listener
         holder.likeButton.setOnClickListener {
             val newLikeStatus = !isLiked
             likeStatusMap[quote.id] = newLikeStatus
             holder.likeButton.setImageResource(
-                if (newLikeStatus) R.drawable.ic_liked 
+                if (newLikeStatus) R.drawable.ic_liked
                 else R.drawable.ic_like
             )
             onLikeClicked(quote, newLikeStatus)
@@ -96,7 +123,7 @@ class QuoteFeedAdapter(
     }
 
     override fun getItemCount() = quotes.size
-    
+
     fun updateLikeStatus(quoteId: String, isLiked: Boolean) {
         likeStatusMap[quoteId] = isLiked
         notifyDataSetChanged()

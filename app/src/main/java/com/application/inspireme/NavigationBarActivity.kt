@@ -73,4 +73,9 @@ class NavigationBarActivity : AppCompatActivity() {
             super.onBackPressed()
         }
     }
+
+    companion object {
+        const val EXTRA_FRAGMENT_TO_LOAD = "fragment_to_load"
+        const val EXTRA_USER_ID = "user_id"
+    }
 }

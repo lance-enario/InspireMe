@@ -16,6 +16,7 @@ import com.application.inspireme.helper.SettingsAdapter
 import com.google.android.gms.common.util.CollectionUtils.listOf
 import com.google.firebase.auth.FirebaseAuth
 import de.hdodenhof.circleimageview.CircleImageView
+import com.application.inspireme.data.UserProfileCache
 import java.io.File
 
 class SettingsPageActivity : AppCompatActivity() {
@@ -26,6 +27,7 @@ class SettingsPageActivity : AppCompatActivity() {
 
         previousScreen = intent.getStringExtra("previous_screen")
         val backButton = findViewById<ImageView>(R.id.back_icon_left)
+
 
         val settingsList = listOf(
             SettingItem(R.drawable.account_icon, "Account", R.drawable.arrow),
@@ -61,7 +63,10 @@ class SettingsPageActivity : AppCompatActivity() {
         val userAuthPrefs = getSharedPreferences("UserAuth", Context.MODE_PRIVATE)
 
         // Set the username
-        usernameDisplay.text = userProfilePrefs.getString("username", "Username")
+        usernameDisplay.text = UserProfileCache.username
+
+        val profileResId = UserProfileCache.profileImages[UserProfileCache.profileId] ?: R.drawable.profile
+        profilePictureSmall.setImageResource(profileResId)
 
         // Set the email if user is logged in
         val currentUser = FirebaseAuth.getInstance().currentUser
@@ -83,6 +88,22 @@ class SettingsPageActivity : AppCompatActivity() {
             // Use default profile image
             profilePictureSmall.setImageResource(R.drawable.profile)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshProfileData()
+    }
+
+    private fun refreshProfileData() {
+        val usernameDisplay = findViewById<TextView>(R.id.username_display)
+        val profilePictureSmall = findViewById<CircleImageView>(R.id.profile_picture_small)
+
+        // Update from cache which should be in sync with ProfileFragment
+        usernameDisplay.text = UserProfileCache.username
+
+        val profileResId = UserProfileCache.profileImages[UserProfileCache.profileId] ?: R.drawable.profile
+        profilePictureSmall.setImageResource(profileResId)
     }
 
     override fun onBackPressed() {

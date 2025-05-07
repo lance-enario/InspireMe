@@ -1,6 +1,192 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:fillViewport="true">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Toolbar -->
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/green"
+            android:elevation="4dp">
+
+            <ImageView
+                android:id="@+id/back_icon_left"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="16dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:scaleX="-1"
+                android:src="@drawable/arrow"
+                android:contentDescription="Back" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Privacy Settings"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </androidx.appcompat.widget.Toolbar>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Current Email -->
+            <EditText
+                android:id="@+id/currentEmail"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_marginBottom="15dp"
+                android:background="@drawable/border"
+                android:hint="Current Email"
+                android:inputType="textEmailAddress"
+                android:paddingLeft="16dp"
+                android:enabled="false"
+                android:singleLine="true" />
+
+            <!-- Current Password -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp">
+
+                <EditText
+                    android:id="@+id/currentPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/border"
+                    android:hint="Current Password"
+                    android:inputType="textPassword"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="50dp"
+                    android:singleLine="true"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
+
+                <ImageButton
+                    android:id="@+id/toggleCurrentPassword"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Toggle password visibility"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_visibility_off"
+                    app:layout_constraintBottom_toBottomOf="@id/currentPassword"
+                    app:layout_constraintEnd_toEndOf="@id/currentPassword"
+                    app:layout_constraintTop_toTopOf="@id/currentPassword"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- New Password -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp">
+
+                <EditText
+                    android:id="@+id/newPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/border"
+                    android:hint="New Password"
+                    android:inputType="textPassword"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="50dp"
+                    android:singleLine="true"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
+
+                <ImageButton
+                    android:id="@+id/toggleNewPassword"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Toggle password visibility"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_visibility_off"
+                    app:layout_constraintBottom_toBottomOf="@id/newPassword"
+                    app:layout_constraintEnd_toEndOf="@id/newPassword"
+                    app:layout_constraintTop_toTopOf="@id/newPassword"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Confirm New Password -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp">
+
+                <EditText
+                    android:id="@+id/confirmPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/border"
+                    android:hint="Confirm New Password"
+                    android:inputType="textPassword"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="50dp"
+                    android:singleLine="true"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
+
+                <ImageButton
+                    android:id="@+id/toggleConfirmPassword"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Toggle password visibility"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_visibility_off"
+                    app:layout_constraintBottom_toBottomOf="@id/confirmPassword"
+                    app:layout_constraintEnd_toEndOf="@id/confirmPassword"
+                    app:layout_constraintTop_toTopOf="@id/confirmPassword"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="16dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/Save"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Save"
+                android:textColor="@color/white"
+                app:backgroundTint="@color/green"
+                app:cornerRadius="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/Cancel"
+                android:layout_width="0dp"
+                android:layout_height="55dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Cancel"
+                android:textColor="@color/green"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="@color/green"
+                app:cornerRadius="8dp" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

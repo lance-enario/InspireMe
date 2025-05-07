@@ -187,20 +187,20 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     }
 
     private fun loadUserDataFromFirebase(userIdToDisplay: String) {
-        if (isOwnProfile && UserProfileCache.isDataLoaded && (System.currentTimeMillis() - UserProfileCache.lastUpdateTime < 3600000)) {
-            displayCachedData()
-            return
-        }
-
         FirebaseManager.getUserData(userIdToDisplay,
             onSuccess = { user ->
                 activity?.runOnUiThread {
                     usernameTextView.text = user.username
                     bioTextView.text = user.bio
 
-                    bannerImageView.setImageResource(UserProfileCache.bannerImages[user.bannerId] ?: R.drawable.banner3)
-                    profilePic.setImageResource(UserProfileCache.profileImages[user.profileId] ?: R.drawable.capybara)
+                    // Load banner and profile pic from Firebase data
+                    val bannerResId = UserProfileCache.bannerImages[user.bannerId] ?: R.drawable.banner3
+                    val profileResId = UserProfileCache.profileImages[user.profileId] ?: R.drawable.capybara
 
+                    bannerImageView.setImageResource(bannerResId)
+                    profilePic.setImageResource(profileResId)
+
+                    // Update cache if it's own profile
                     if (isOwnProfile) {
                         UserProfileCache.username = user.username
                         UserProfileCache.bio = user.bio
@@ -214,14 +214,11 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             onFailure = { error ->
                 activity?.runOnUiThread {
                     Toast.makeText(requireContext(), "Failed to load user data: $error", Toast.LENGTH_SHORT).show()
-                    if (isOwnProfile) {
-                        loadSavedData()
-                    } else {
-                        usernameTextView.text = "User"
-                        bioTextView.text = "Could not load bio."
-                        bannerImageView.setImageResource(R.drawable.banner3)
-                        profilePic.setImageResource(R.drawable.profile)
-                    }
+                    // Set default images
+                    bannerImageView.setImageResource(R.drawable.banner3)
+                    profilePic.setImageResource(R.drawable.capybara)
+                    usernameTextView.text = "User"
+                    bioTextView.text = "Could not load bio."
                 }
             }
         )

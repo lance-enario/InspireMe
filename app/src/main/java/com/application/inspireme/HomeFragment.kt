@@ -4,21 +4,16 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import androidx.core.content.ContextCompat
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.ImageButton
-import android.widget.TextView
 import android.widget.Toast
 import android.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.application.inspireme.R
-import com.application.inspireme.SettingsPageActivity
 import com.application.inspireme.adapter.QuoteFeedAdapter
 import com.application.inspireme.adapter.SuggestedUsersAdapter
 import com.application.inspireme.api.FirebaseManager
@@ -43,12 +38,6 @@ class HomeFragment : Fragment(R.layout.fragment_home), OnUserProfileClickListene
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-
-        view.findViewById<ImageButton>(R.id.button_settings).setOnClickListener {
-            val intent = Intent(requireContext(), SettingsPageActivity::class.java)
-            intent.putExtra("previous_fragment", "HomeFragment")
-            startActivity(intent)
-        }
 
         // Setup search functionality
         val searchView = view.findViewById<SearchView>(R.id.searchView)
@@ -457,7 +446,7 @@ class HomeFragment : Fragment(R.layout.fragment_home), OnUserProfileClickListene
 
     private fun setupSearchView(searchView: SearchView) {
         // Set hint text
-        searchView.queryHint = "Search quotes..."
+        searchView.queryHint = "Search user..."
 
         // Set search view listeners
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -518,9 +507,6 @@ class HomeFragment : Fragment(R.layout.fragment_home), OnUserProfileClickListene
 
                 // Show message if no results found
                 activity?.runOnUiThread {
-                    if (filteredQuotes.isEmpty()) {
-                        Toast.makeText(context, "No quotes found matching \"$query\"", Toast.LENGTH_SHORT).show()
-                    }
                 }
             },
             onFailure = { error ->

@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.application.inspireme.R
+import com.application.inspireme.data.UserProfileCache
 import com.application.inspireme.listeners.OnUserProfileClickListener
 import com.application.inspireme.model.User
 import de.hdodenhof.circleimageview.CircleImageView
@@ -31,13 +32,14 @@ class SuggestedUsersAdapter(
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
         val user = users[position]
-        
-        // Set profile image
-        holder.profileImage.setImageResource(R.drawable.profile)
-        
+
+        // Set profile image based on user's profileId
+        val profileResId = UserProfileCache.profileImages[user.profileId] ?: R.drawable.capybara
+        holder.profileImage.setImageResource(profileResId)
+
         // Set username
         holder.usernameText.text = user.username
-        
+
         // Set follow button click listener
         holder.followButton.setOnClickListener {
             onFollowClicked(user, true)

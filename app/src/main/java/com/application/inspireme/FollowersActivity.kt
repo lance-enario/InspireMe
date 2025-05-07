@@ -22,7 +22,6 @@ class FollowersActivity : AppCompatActivity() {
     private var userId: String? = null
     private lateinit var noFollowersTextView: TextView
 
-
     companion object {
         const val EXTRA_USER_ID = "extra_user_id"
     }
@@ -48,18 +47,23 @@ class FollowersActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.recyclerView_followers)
         recyclerView.layoutManager = LinearLayoutManager(this)
         followerAdapter = FollowerAdapter(this, followersList) { follower ->
-            // Navigate to follower's profile
-            // This assumes your MainActivity hosts ProfileFragment and can handle this intent
-            val intent = Intent(this, NavigationBarActivity::class.java).apply {
-                putExtra("navigateTo", "ProfileFragment")
-                putExtra("arg_user_id", follower.id)
-                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            startActivity(intent)
+            navigateToProfile(follower.id)
         }
         recyclerView.adapter = followerAdapter
 
         loadFollowers(userId!!)
+    }
+
+    private fun navigateToProfile(userId: String) {
+        Log.d("FollowersActivity", "Opening profile for user: $userId")
+
+        val profileFragment = ProfileFragment.newInstance(userId)
+        val intent = Intent(this, NavigationBarActivity::class.java).apply {
+            putExtra(NavigationBarActivity.EXTRA_FRAGMENT_TO_LOAD, "profile")
+            putExtra(NavigationBarActivity.EXTRA_USER_ID, userId)
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        startActivity(intent)
     }
 
     private fun loadFollowers(userIdToLoad: String) {
