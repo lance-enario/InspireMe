@@ -24,6 +24,7 @@ import com.google.android.material.tabs.TabLayout
 import de.hdodenhof.circleimageview.CircleImageView
 import android.app.AlertDialog
 import android.content.res.ColorStateList
+import android.util.Log
 import androidx.core.content.ContextCompat
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
@@ -492,8 +493,9 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         loggedInUserId?.let { uid ->
             val loadingSnackbar = Snackbar.make(requireView(), "Deleting quote...", Snackbar.LENGTH_INDEFINITE)
             loadingSnackbar.show()
-
+            Log.d("ProfileFragment", "Attempting to delete quote ${quote.id}")
             FirebaseManager.deleteQuote(quote.id, uid) { success ->
+                Log.d("ProfileFragment", "Delete completed. Success: $success")
                 activity?.runOnUiThread {
                     loadingSnackbar.dismiss()
 

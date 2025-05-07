@@ -13,6 +13,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.tasks.await
 
+
 object FirebaseManager {
     private val database = FirebaseDatabase.getInstance()
     private val usersRef = database.getReference("users")
@@ -21,6 +22,7 @@ object FirebaseManager {
     private val followersRef = database.getReference("followers")
     private val followingRef = database.getReference("following")
     private val notificationsRef = database.getReference("notifications")
+    private lateinit var tempid : String
 
     fun saveUser(userId: String, user: User, onComplete: (Boolean) -> Unit) {
         usersRef.child(userId).setValue(user)
@@ -72,6 +74,7 @@ object FirebaseManager {
     fun saveQuote(quote: Quote, onComplete: (Boolean, String?) -> Unit) {
         val quoteId = quotesRef.push().key ?: return onComplete(false, "Failed to generate ID")
         val updatedQuote = quote.copy(id = quoteId)
+        tempid = quoteId
         
         quotesRef.child(quoteId).setValue(updatedQuote)
             .addOnCompleteListener { task ->
@@ -171,11 +174,11 @@ object FirebaseManager {
     // User-specific quotes
     fun saveUserQuote(userId: String, quote: Quote, onComplete: (Boolean, String?) -> Unit) {
         val userQuotesRef = database.getReference("userQuotes/$userId")
-        val quoteId = userQuotesRef.push().key ?: return onComplete(false, "Failed to generate ID")
-        
+        val quoteId = tempid
+
         // Set the ID in the quote object
         val updatedQuote = quote.copy(id = quoteId)
-        
+
         userQuotesRef.child(quoteId).setValue(updatedQuote)
             .addOnCompleteListener { task ->
                 onComplete(task.isSuccessful, if (task.isSuccessful) quoteId else null)
@@ -619,19 +622,51 @@ object FirebaseManager {
      * Deletes a quote from the main quotes collection and user's quotes
      */
     fun deleteQuote(quoteId: String, userId: String, onComplete: (Boolean) -> Unit) {
-        // Create a batch operation to delete from multiple locations
-        val updates = HashMap<String, Any?>()
-        
-        // Delete from main quotes collection
-        updates["/quotes/$quoteId"] = null
-        
-        // Delete from user quotes
-        updates["/userQuotes/$userId/$quoteId"] = null
-        
-        // Execute all deletions as a single operation
+        // Create a batch operation
+        val updates = hashMapOf<String, Any?>()
+
+        // 1. First delete from main quotes collection (priority)
+        updates["quotes/$quoteId"] = null
+
+        // 2. Delete from user's quotes
+        updates["userQuotes/$userId/$quoteId"] = null
+
+        // 3. Execute the immediate deletions first
         database.reference.updateChildren(updates)
-            .addOnCompleteListener { task ->
-                onComplete(task.isSuccessful)
+            .addOnCompleteListener { mainDeletionTask ->
+                if (!mainDeletionTask.isSuccessful) {
+                    Log.e("FirebaseManager", "Failed to delete from main collections: ${mainDeletionTask.exception}")
+                    onComplete(false)
+                    return@addOnCompleteListener
+                }
+
+                // 4. Then handle the liked quotes cleanup (can be done separately)
+                likedQuotesRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val likeUpdates = hashMapOf<String, Any?>()
+                        for (userSnapshot in snapshot.children) {
+                            val uid = userSnapshot.key ?: continue
+                            if (userSnapshot.child(quoteId).exists()) {
+                                likeUpdates["likedQuotes/$uid/$quoteId"] = null
+                            }
+                        }
+
+                        if (likeUpdates.isNotEmpty()) {
+                            database.reference.updateChildren(likeUpdates)
+                                .addOnCompleteListener { likeDeletionTask ->
+                                    onComplete(likeDeletionTask.isSuccessful)
+                                }
+                        } else {
+                            onComplete(true)
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        Log.e("FirebaseManager", "Error cleaning up likes: ${error.message}")
+                        // Still report success since main deletion worked
+                        onComplete(true)
+                    }
+                })
             }
     }
 }
